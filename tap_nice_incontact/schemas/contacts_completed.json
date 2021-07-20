@@ -1,0 +1,327 @@
+{
+  "type": [
+    "null",
+    "object"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "abandoned": {
+      "type": [
+        "null",
+        "boolean"
+      ]
+    },
+    "abandonSeconds": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "ACWSeconds": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "agentId": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "agentSeconds": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "callbackTime": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "campaignId": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "campaignName": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "confSeconds": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "contactId": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "contactStart": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "format": "date-time"
+    },
+    "dateACWWarehoused": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "format": "date-time"
+    },
+    "dateContactWarehoused": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "format": "date-time"
+    },
+    "dispositionNotes": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "firstName": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "fromAddr": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "holdCount": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "holdSeconds": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "inQueueSeconds": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "isLogged": {
+      "type": [
+        "null",
+        "boolean"
+      ]
+    },
+    "isOutbound": {
+      "type": [
+        "null",
+        "boolean"
+      ]
+    },
+    "isRefused": {
+      "type": [
+        "null",
+        "boolean"
+      ]
+    },
+    "isShortAbandon": {
+      "type": [
+        "null",
+        "boolean"
+      ]
+    },
+    "isTakeover": {
+      "type": [
+        "null",
+        "boolean"
+      ]
+    },
+    "lastName": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "lastUpdateTime": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "format": "date-time"
+    },
+    "masterContactId": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "mediaType": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "mediaSubTypeId": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "mediaSubTypeName": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "mediaTypeName": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "pointOfContactId": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "pointOfContactName": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "postQueueSeconds": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "preQueueSeconds": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "primaryDispositionId": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "refuseReason": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "refuseTime": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "format": "date-time"
+    },
+    "releaseSeconds": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "routingTime": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "secondaryDispositionId": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "serviceLevelFlag": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "skillId": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "skillName": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "teamId": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "teamName": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "toAddr": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "totalDurationSeconds": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "transferIndicatorId": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "transferIndicatorName": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "isAnalyticsProcessed": {
+      "type": [
+        "null",
+        "boolean"
+      ]
+    },
+    "analyticsProcessedDate": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "format": "date-time"
+    }
+  }
+}

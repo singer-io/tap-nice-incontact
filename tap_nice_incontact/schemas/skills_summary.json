@@ -1,0 +1,250 @@
+{
+    "type": [
+      "null",
+      "object"
+    ],
+    "additionalProperties": false,
+    "properties": {
+      "businessUnitId": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "businessUnitName": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "abandonCount": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "abandonRate": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "agentsAcw": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "agentsAvailable": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "agentsIdle": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "agentsLoggedIn": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "agentsUnavailable": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "agentsWorking": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "averageHandleTime": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "averageInqueueTime": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "averageSpeedToAnswer": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "averageTalkTime": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "averageWrapTime": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "campaignId": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "campaignName": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "contactsActive": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "contactsHandled": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "contactsOffered": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "contactsQueued": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "contactsOutOfSLA": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "contactsWithinSLA": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "holdTime": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "isOutbound": {
+        "type": [
+          "null",
+          "boolean"
+        ]
+      },
+      "longestQueueDur": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "mediaTypeId": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "mediaTypeName": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "queueCount": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "serviceLevel": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "skillName": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "skillId": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "serviceLevelGoal": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "serviceLevelThreshold": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "totalContactTime": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "dials": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "connects": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "connectsAHT": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "rightPartyConnects": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "rightPartyConnectsAHT": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      }
+    }
+  }
+  
