@@ -230,8 +230,9 @@
       "connectsAHT": {
         "type": [
           "null",
-          "integer"
-        ]
+          "string"
+        ],
+        "format": "singer.decimal"
       },
       "rightPartyConnects": {
         "type": [
