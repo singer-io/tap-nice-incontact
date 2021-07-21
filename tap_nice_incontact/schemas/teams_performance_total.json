@@ -1,0 +1,168 @@
+{
+    "type": [
+      "null",
+      "object"
+    ],
+    "properties": {
+      "teamId": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "agentOffered": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "inboundHandled": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "inboundTime": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "inboundTalkTime": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "inboundAvgTalkTime": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "outboundHandled": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "outboundTime": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "outboundTalkTime": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "outboundAvgTalkTime": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "totalHandled": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "totalAvgHandled": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "totalTalkTime": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "totalAvgTalkTime": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "totalAvgHandleTime": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "consultTime": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "availableTime": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "unavailableTime": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "avgAvailableTime": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "avgUnavailableTime": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "acwTime": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "refused": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "percentRefused": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "format": "singer.decimal"
+      },
+      "loginTime": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "workingRate": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "format": "singer.decimal"
+      },
+      "occupancy": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "format": "singer.decimal"
+      }
+    }
+  }
+  

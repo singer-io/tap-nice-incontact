@@ -1,0 +1,52 @@
+{
+    "type": [
+      "null",
+      "object"
+    ],
+    "properties": {
+      "businessUnitId": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "skillId": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "skillName": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "contactsWithinSLA": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "contactsOutOfSLA": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "totalContacts": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "serviceLevel": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "format": "singer.decimal"
+      }
+    }
+  }
+  
