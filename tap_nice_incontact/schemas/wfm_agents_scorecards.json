@@ -1,0 +1,101 @@
+{
+    "type": [
+      "null",
+      "object"
+    ],
+    "additionalProperties": false,
+    "properties": {
+      "businessUnitId": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "agentId": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "startDate": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "format": "date-time"
+      },
+      "totalTime": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "format": "singer.decimal"
+      },
+      "talkTime": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "format": "singer.decimal"
+      },
+      "acwTime": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "format": "singer.decimal"
+      },
+      "holdTime": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "format": "singer.decimal"
+      },
+      "totalCalls": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "abandonedCalls": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "auxTime": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "format": "singer.decimal"
+      },
+      "auxInTime": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "auxOutTime": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "idleTime": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "format": "singer.decimal"
+      },
+      "actualCalls": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      }
+    }
+  }
+  

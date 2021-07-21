@@ -1,0 +1,91 @@
+{
+    "type": [
+      "null",
+      "object"
+    ],
+    "additionalProperties": false,
+    "properties": {
+      "businessUnitId": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "businessUnitName": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "intervalStartDate": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "format": "date-time"
+      },
+      "skillId": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "skillName": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "mediaTypeId": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "mediaTypeName": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "dials": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "connects": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "connectsAHT": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "format": "singer.decimal"
+      },
+      "rightPartyConnects": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "rightPartyConnectsAHT": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "format": "singer.decimal"
+      },
+      "abandons": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      }
+    }
+  }
+  

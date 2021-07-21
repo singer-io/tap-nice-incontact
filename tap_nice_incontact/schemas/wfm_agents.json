@@ -1,0 +1,90 @@
+{
+    "type": [
+      "null",
+      "object"
+    ],
+    "additionalProperties": false,
+    "properties": {
+      "agentId": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "teamName": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "teamId": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "businessUnitId": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "businessUnitName": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "firstName": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "middleName": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "lastName": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "status": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "createDate": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "format": "date-time"
+      },
+      "modDateTime": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "format": "date-time"
+      },
+      "productId": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "ntLoginName": {
+        "type": [
+          "null",
+          "string"
+        ]
+      }
+    }
+  }
+  

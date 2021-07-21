@@ -1,0 +1,77 @@
+{
+    "type": [
+      "null",
+      "object"
+    ],
+    "additionalProperties": false,
+    "properties": {
+      "businessUnitId": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "businessUnitName": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "skillId": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "skillName": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "agentId": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "firstName": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "lastName": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "halfHour": {
+        "type": [
+          "null",
+          "integer"
+        ],
+        "format": "date-time"
+      },
+      "totalHandled": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "totalHandledTime": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "totalACWTime": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      }
+    }
+  }
+  
