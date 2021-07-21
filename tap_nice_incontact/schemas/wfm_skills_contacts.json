@@ -3,6 +3,7 @@
       "null",
       "object"
     ],
+    "additionalProperties": false,
     "properties": {
       "businessUnitId": {
         "type": [
