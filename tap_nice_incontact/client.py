@@ -14,7 +14,10 @@ API_VERSION = '21.0'
 MAX_RETRIES = 5
 
 def log_backoff_attempt(details):
-    LOGGER.info("Connection error detected, triggering backoff: %d try", details.get("tries"))
+    LOGGER.info(
+        "Connection error detected, triggering backoff: %d try",
+        details.get("tries")
+        )
 
 
 # pylint: disable=missing-class-docstring
@@ -64,20 +67,31 @@ class NiceInContactClient:
 
         self.start_date = start_date
 
-    def _ensure_access_token(self):
-        if self.access_token is None or self.expires_at <= dt.utcnow():
-            if self.refresh_token is None:
+    def _ensure_access_token(self, refresh_token: str = None):
+        """
+        Internal method for keeping access token current.
+
+        :param refresh_token: The refresh token from a previous request.
+        """
+        if refresh_token and self.expires_at <= dt.utcnow():
+            response = self.session.post(self.refresh_endpoint, data={"token": self.refresh_token})
+
+            data = response.json()
+
+            # `refresh_endpoint` returns slightly different `access_token` and `refresh_token` keys
+            self.access_token = data.get('token')
+            self.refresh_token = data.get('refreshToken')
+
+            # `refresh_endpoint` returns slightly different `expires_in` key
+            self.expires_at = dt.utcnow() + \
+                timedelta(seconds=int(data.get('refreshTokenExpirationTimeSec')) - 10)
+        else:
+            if self.access_token is None or self.expires_at <= dt.utcnow():
                 response = self.session.post(
                     self.auth_endpoint,
                     data={
                         "accessKeyId": self.api_key,
                         "accessKeySecret": self.api_secret
-                    })
-            else:
-                response = self.session.post(
-                    self.refresh_endpoint,
-                    data={
-                        "token": self.refresh_token
                     })
 
             if response.status_code != 200:
@@ -113,6 +127,18 @@ class NiceInContactClient:
                     headers: dict = None,
                     params: dict = None,
                     data: dict = None):
+        """
+        Internal NiceInContactClient method for making HTTP requests.
+
+        :param method: The HTTP method to use: Ex. GET or POST.
+        :param endpoint: The url for the HTTP request.
+        :param paging: A boolean for whether or not this is a sub-sequent 
+                            paginated request.
+        :param headers: Any non-standard HTTP request headers required 
+                            to make request.
+        :param params: Any URI encoded query params required to make request.
+        :param data: Any request body required to make request.
+        """
         if not paging:
             full_url = f'{self.api_base_uri}/{endpoint}'
         else:
@@ -126,7 +152,7 @@ class NiceInContactClient:
             params,
         )
 
-        self._ensure_access_token()
+        self._ensure_access_token(self.refresh_token)
 
         default_headers = self._get_standard_headers()
 
@@ -154,4 +180,7 @@ class NiceInContactClient:
         return results
 
     def get(self, endpoint, paging=False, headers=None, params=None):
+        """
+        NiceInContactClient's primary external method for making GET requests.
+        """
         return self._make_request("GET", endpoint, paging, headers=headers, params=params)
