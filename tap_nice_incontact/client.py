@@ -1,4 +1,157 @@
+import backoff
+
+from requests import Session, ConnectionError
+from datetime import datetime as dt, timedelta
+from singer import get_logger
+
+LOGGER = get_logger()
+
+API_AUTH_DOMAIN = 'na1'
+API_AUTH_URI = 'https://{}.niceincontact.com/authentication/v1/token/access-key'
+API_REFRESH_URI = 'https://{}.nice-incontact.com/public/user/refresh'
+API_BASE_URI = 'https://api-{}.nice-incontact.com/inContactAPI/services/v{}'
+API_VERSION = '21.0'
+MAX_RETRIES = 5
+
+def log_backoff_attempt(details):
+    LOGGER.info("Connection error detected, triggering backoff: %d try", details.get("tries"))
 
 
-class Client:
+# pylint: disable=missing-class-docstring
+class NiceInContactException(Exception):
     pass
+
+# pylint: disable=missing-class-docstring
+class NiceInContact5xxException(NiceInContactException):
+    pass
+
+# pylint: disable=missing-class-docstring
+class NiceInContact4xxException(NiceInContactException):
+    pass
+
+# pylint: disable=missing-class-docstring
+class NiceInContact429Exception(NiceInContactException):
+    def __init__(self, message=None, response=None):
+        super().__init__(message)
+        self.message = message
+        self.response = response
+
+# pylint: disable=missing-class-docstring
+class NiceInContactClient:
+    def __init__(self,
+                api_key: str = None,
+                api_secret: str = None,
+                api_cluster: str = None,
+                api_version: str = None,
+                auth_domain: str = None,
+                user_agent: str = None,
+                start_date: str = None):
+        self.api_key = api_key
+        self.api_secret = api_secret
+        self.api_version = str(api_version) if api_version else API_VERSION
+        self.api_base_uri = API_BASE_URI.format(api_cluster, self.api_version)
+        self.user_agent = user_agent
+
+        self.session = Session()
+
+        api_auth_domain = auth_domain if auth_domain else API_AUTH_DOMAIN
+        self.auth_endpoint = API_AUTH_URI.format(api_auth_domain)
+        self.refresh_endpoint = API_REFRESH_URI.format(api_auth_domain)
+
+        self.access_token = None
+        self.refresh_token = None
+        self.expires_at = None
+
+        self.start_date = start_date
+
+    def _ensure_access_token(self):
+        if self.access_token is None or self.expires_at <= dt.utcnow():
+            if self.refresh_token is None:
+                response = self.session.post(
+                    self.auth_endpoint,
+                    data={
+                        "accessKeyId": self.api_key,
+                        "accessKeySecret": self.api_secret
+                    })
+            else:
+                response = self.session.post(
+                    self.refresh_endpoint,
+                    data={
+                        "token": self.refresh_token
+                    })
+
+            if response.status_code != 200:
+                raise NiceInContactException(
+                    'Non-200 response fetching NICE inContact access token'
+                    )
+
+            data = response.json()
+
+            self.access_token = data.get('access_token')
+            self.refresh_token = data.get('refresh_token')
+
+            self.expires_at = dt.utcnow() + \
+                timedelta(seconds=int(data.get('expires_in')) - 10)
+
+    def _get_standard_headers(self):
+        return {
+            "Authorization": "Bearer {}".format(self.access_token),
+            "User-Agent": self.user_agent,
+        }
+
+    @backoff.on_exception(backoff.expo,
+                        (NiceInContact5xxException,
+                        NiceInContact4xxException,
+                        ConnectionError),
+                        max_tries=MAX_RETRIES,
+                        factor=2,
+                        on_backoff=log_backoff_attempt)
+    def _make_request(self,
+                    method: str,
+                    endpoint: str,
+                    paging: bool = False,
+                    headers: dict = None,
+                    params: dict = None,
+                    data: dict = None):
+        if not paging:
+            full_url = f'{self.api_base_uri}/{endpoint}'
+        else:
+            full_url = endpoint
+
+        LOGGER.info(
+            "%s - Making request to %s endpoint %s, with params %s",
+            full_url,
+            method.upper(),
+            endpoint,
+            params,
+        )
+
+        self._ensure_access_token()
+
+        default_headers = self._get_standard_headers()
+
+        if headers:
+            headers = {**default_headers, **headers}
+        else:
+            headers = {**default_headers}
+
+        response = self.session.request(method, 
+                                        full_url,
+                                        headers=headers,
+                                        params=params,
+                                        data=data)
+
+        # pylint: disable=no-else-raise
+        if response.status_code >= 500:
+            raise NiceInContact5xxException(response.text)
+        elif response.status_code == 429:
+            raise NiceInContact429Exception("rate limit exceeded", response)
+        elif response.status_code >= 400:
+            raise NiceInContact4xxException(response.text)
+
+        results = response.json()
+
+        return results
+
+    def get(self, endpoint, paging=False, headers=None, params=None):
+        return self._make_request("GET", endpoint, paging, headers=headers, params=params)

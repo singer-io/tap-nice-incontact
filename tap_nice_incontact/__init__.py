@@ -4,7 +4,15 @@ from singer import utils
 from tap_nice_incontact.discover import discover
 from tap_nice_incontact.sync import sync
 
-REQUIRED_CONFIG_KEYS = ["start_date", "username", "password"]
+REQUIRED_CONFIG_KEYS = [
+    "start_date",
+    "api_key",
+    "api_secret",
+    "api_cluster",
+    "api_version",
+    "user_agent"
+    ]
+
 LOGGER = singer.get_logger()
 
 
