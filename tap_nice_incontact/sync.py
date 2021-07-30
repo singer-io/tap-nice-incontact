@@ -1,7 +1,7 @@
 import singer
 from singer import Transformer, metadata
 
-from tap_nice_incontact.client import Client
+from tap_nice_incontact.client import NiceInContactClient
 from tap_nice_incontact.streams import STREAMS
 
 LOGGER = singer.get_logger()
@@ -9,7 +9,7 @@ LOGGER = singer.get_logger()
 def sync(config, state, catalog):
     """ Sync data from tap source """
 
-    client = Client()
+    client = NiceInContactClient(**config)
 
     with Transformer() as transformer:
         for stream in catalog.get_selected_streams(state):

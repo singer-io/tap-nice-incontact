@@ -7,7 +7,7 @@ from singer import get_logger
 LOGGER = get_logger()
 
 API_AUTH_DOMAIN = 'na1'
-API_AUTH_URI = 'https://{}.niceincontact.com/authentication/v1/token/access-key'
+API_AUTH_URI = 'https://{}.nice-incontact.com/authentication/v1/token/access-key'
 API_REFRESH_URI = 'https://{}.nice-incontact.com/public/user/refresh'
 API_BASE_URI = 'https://api-{}.nice-incontact.com/inContactAPI/services/v{}'
 API_VERSION = '21.0'
@@ -74,7 +74,7 @@ class NiceInContactClient:
         :param refresh_token: The refresh token from a previous request.
         """
         if refresh_token and self.expires_at <= dt.utcnow():
-            response = self.session.post(self.refresh_endpoint, data={"token": self.refresh_token})
+            response = self.session.post(self.refresh_endpoint, json={"token": self.refresh_token})
 
             data = response.json()
 
@@ -89,23 +89,23 @@ class NiceInContactClient:
             if self.access_token is None or self.expires_at <= dt.utcnow():
                 response = self.session.post(
                     self.auth_endpoint,
-                    data={
+                    json={
                         "accessKeyId": self.api_key,
                         "accessKeySecret": self.api_secret
                     })
 
-            if response.status_code != 200:
-                raise NiceInContactException(
-                    'Non-200 response fetching NICE inContact access token'
-                    )
+                if response.status_code != 200:
+                    raise NiceInContactException(
+                        'Non-200 response fetching NICE inContact access token'
+                        )
 
-            data = response.json()
+                data = response.json()
 
-            self.access_token = data.get('access_token')
-            self.refresh_token = data.get('refresh_token')
+                self.access_token = data.get('access_token')
+                self.refresh_token = data.get('refresh_token')
 
-            self.expires_at = dt.utcnow() + \
-                timedelta(seconds=int(data.get('expires_in')) - 10)
+                self.expires_at = dt.utcnow() + \
+                    timedelta(seconds=int(data.get('expires_in')) - 10)
 
     def _get_standard_headers(self):
         return {
