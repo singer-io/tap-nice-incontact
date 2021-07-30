@@ -1,12 +1,12 @@
 import csv
+from datetime import datetime
 import time
-from typing import Any, Iterator
+from typing import Iterator
 
-import requests
 import singer
 from singer import Transformer, metrics
 
-from tap_nice_incontact.client import Client
+from tap_nice_incontact.client import NiceInContactClient, NiceInContactException
 
 
 LOGGER = singer.get_logger()
@@ -22,13 +22,15 @@ class BaseStream:
     replication_key = None
     key_properties = []
     valid_replication_keys = []
+    path = None
     params = {}
     parent = None
+    data_key = None
 
-    def __init__(self, client: Client):
+    def __init__(self, client: NiceInContactClient):
         self.client = client
 
-    def get_records(self, config: dict = None, is_parent: bool = False) -> list:
+    def get_records(self, bookmark_datetime: datetime = None, is_parent: bool = False) -> list:
         """
         Returns a list of records for that stream.
 
@@ -54,6 +56,7 @@ class BaseStream:
         :param config: The tap config file
         :return: A list of records
         """
+        # pylint: disable=not-callable
         parent = self.parent(self.client)
         return parent.get_records(config, is_parent=True)
 
@@ -82,11 +85,15 @@ class IncrementalStream(BaseStream):
         :param transformer: A singer Transformer object
         :return: State data in the form of a dictionary
         """
-        start_time = singer.get_bookmark(state, self.tap_stream_id, self.replication_key, config['start_date'])
+        start_time = singer.get_bookmark(state,
+                                        self.tap_stream_id,
+                                        self.replication_key,
+                                        config['start_date'])
+        bookmark_datetime = singer.utils.strptime_to_utc(start_time)
         max_record_value = start_time
 
         with metrics.record_counter(self.tap_stream_id) as counter:
-            for record in self.get_records(config):
+            for record in self.get_records(bookmark_datetime):
                 transformed_record = transformer.transform(record, stream_schema, stream_metadata)
                 record_replication_value = singer.utils.strptime_to_utc(transformed_record[self.replication_key])
                 if record_replication_value >= singer.utils.strptime_to_utc(max_record_value):
@@ -132,24 +139,30 @@ class FullTableStream(BaseStream):
         return state
 
 
-class SampleStream(FullTableStream):
+class ContactsCompleted(IncrementalStream):
     """
-    Gets records for a sample stream.
+
+
+    Docs: https://developer.niceincontact.com/API/ReportingAPI#/Reporting/Completed%20Contact%20Details
     """
-    tap_stream_id = 'sample_stream'
-    key_properties = ['id']
+    tap_stream_id = 'contacts_completed'
+    key_properties = ['contactId']
+    path = 'contacts/completed'
+    replication_key = 'lastUpdateTime' 
+    valid_replication_keys = ['lastUpdateTime'] # `lastPollTime` is suggested by the Docs to be used in subsequent requests
+    data_key = 'completedContacts'
 
-    def get_records(self, config=None, is_parent=False):
-        sample_data = [{
-            'string_field': 'some string',
-            'datetime_field': '2021-04-23T17:05:41.762537+00:00',
-            'integer_field': 3,
-            'double_field': 22.78,
-        }]
+    def get_records(self, bookmark_datetime: datetime, is_parent: bool = False) -> Iterator[list]:
+        params = {
+            "updatedSince": bookmark_datetime.isoformat(),
+            "orderBy": self.replication_key + ' asc'
+        }
 
-        yield from sample_data
+        response = self.client.get(self.path, params=params)
+
+        yield from response.get(self.data_key)
 
 
 STREAMS = {
-    'sample_stream': SampleStream,
+    'contacts_completed': ContactsCompleted,
 }
