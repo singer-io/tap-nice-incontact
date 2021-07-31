@@ -1,7 +1,9 @@
 import csv
-from datetime import datetime
 import time
-from typing import Iterator
+import datetime
+
+from datetime import datetime as dt, timedelta, timezone
+from typing import Iterator, Tuple
 
 import singer
 from singer import Transformer, metrics
@@ -141,7 +143,7 @@ class FullTableStream(BaseStream):
 
 class ContactsCompleted(IncrementalStream):
     """
-
+    Retrieve completed contacts since `bookmark_datetime`
 
     Docs: https://developer.niceincontact.com/API/ReportingAPI#/Reporting/Completed%20Contact%20Details
     """
@@ -163,6 +165,46 @@ class ContactsCompleted(IncrementalStream):
         yield from response.get(self.data_key)
 
 
+class SkillsSummary(IncrementalStream):
+    """
+    Retrieve skill summaries for a date-range
+
+    Docs: https://developer.niceincontact.com/API/ReportingAPI#/Reporting/getFullSkillSummaries
+    """
+    tap_stream_id = 'skills_summary'
+    key_properties = ['skillId']
+    path = 'skills/summary'
+    replication_key = 'endDate'
+    valid_replication_keys = ['startDate', 'endDate']
+    data_key = 'skillSummaries'
+
+    @staticmethod
+    def generate_date_range(start_date: datetime = None, end_date: datetime = dt.now(timezone.utc)) -> Iterator[list]:
+        """Generate 1-day period date-range from the `start_date` and `end_date`"""
+        date_list = []
+
+        new_start = start_date
+        for day in range(1, (end_date - start_date).days + 1):
+            new_end = start_date + timedelta(days=day)
+            date_list.append((new_start.isoformat(), new_end.isoformat()))
+            new_start = new_end
+
+        yield from date_list
+
+    def get_records(self, bookmark_datetime: datetime, is_parent: bool = False) -> list:
+        for start, end in self.generate_date_range(bookmark_datetime):
+            params = {
+                "startDate": start,
+                "endDate": end
+            }
+
+            results = self.client.get(self.path, params=params)
+
+            # add `startDate` and `endDate` to each record
+            yield from (dict(x, **params) for x in results.get(self.data_key))
+
+
 STREAMS = {
     'contacts_completed': ContactsCompleted,
+    'skills_summary': SkillsSummary,
 }
