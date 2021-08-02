@@ -257,8 +257,9 @@
       "rightPartyConnectsAHT": {
         "type": [
           "null",
-          "integer"
-        ]
+          "string"
+        ],
+        "format": "singer.decimal"
       }
     }
   }
