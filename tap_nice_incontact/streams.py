@@ -6,9 +6,10 @@ from datetime import datetime as dt, timedelta, timezone
 from typing import Iterator, Tuple
 
 import singer
-from singer import Transformer, metrics
+from singer import Transformer, metrics, utils
 
 from tap_nice_incontact.client import NiceInContactClient, NiceInContactException
+from tap_nice_incontact.transform import convert_data_types
 
 
 LOGGER = singer.get_logger()
@@ -28,6 +29,7 @@ class BaseStream:
     params = {}
     parent = None
     data_key = None
+    convert_data_types = False
 
     def __init__(self, client: NiceInContactClient):
         self.client = client
@@ -61,6 +63,19 @@ class BaseStream:
         # pylint: disable=not-callable
         parent = self.parent(self.client)
         return parent.get_records(config, is_parent=True)
+
+    @staticmethod
+    def generate_date_range(start_date: datetime = None, end_date: datetime = utils.now()) -> Iterator[list]:
+        """Generate 1-day period date-range from the `start_date` and `end_date`"""
+        date_list = []
+
+        new_start = start_date
+        for day in range(1, (end_date - start_date).days + 1):
+            new_end = start_date + timedelta(days=day)
+            date_list.append((new_start.isoformat(), new_end.isoformat()))
+            new_start = new_end
+
+        yield from date_list
 
 
 class IncrementalStream(BaseStream):
@@ -96,6 +111,9 @@ class IncrementalStream(BaseStream):
 
         with metrics.record_counter(self.tap_stream_id) as counter:
             for record in self.get_records(bookmark_datetime):
+                if self.convert_data_types:
+                    record = convert_data_types(record, stream_schema, stream_metadata)
+
                 transformed_record = transformer.transform(record, stream_schema, stream_metadata)
                 record_replication_value = singer.utils.strptime_to_utc(transformed_record[self.replication_key])
                 if record_replication_value >= singer.utils.strptime_to_utc(max_record_value):
@@ -177,21 +195,9 @@ class SkillsSummary(IncrementalStream):
     replication_key = 'endDate'
     valid_replication_keys = ['startDate', 'endDate']
     data_key = 'skillSummaries'
+    convert_data_types = True
 
-    @staticmethod
-    def generate_date_range(start_date: datetime = None, end_date: datetime = dt.now(timezone.utc)) -> Iterator[list]:
-        """Generate 1-day period date-range from the `start_date` and `end_date`"""
-        date_list = []
-
-        new_start = start_date
-        for day in range(1, (end_date - start_date).days + 1):
-            new_end = start_date + timedelta(days=day)
-            date_list.append((new_start.isoformat(), new_end.isoformat()))
-            new_start = new_end
-
-        yield from date_list
-
-    def get_records(self, bookmark_datetime: datetime, is_parent: bool = False) -> list:
+    def get_records(self, bookmark_datetime: datetime, is_parent: bool = False) -> Iterator:
         for start, end in self.generate_date_range(bookmark_datetime):
             params = {
                 "startDate": start,
@@ -201,10 +207,54 @@ class SkillsSummary(IncrementalStream):
             results = self.client.get(self.path, params=params)
 
             # add `startDate` and `endDate` to each record
-            yield from (dict(x, **params) for x in results.get(self.data_key))
+            yield from (dict(rec, **params) for rec in results.get(self.data_key))
+
+
+class SkillsSLASummary(IncrementalStream):
+    """
+    Retrieve skill SLA compliance summaries for a date-range.
+
+    Docs: https://developer.niceincontact.com/API/ReportingAPI#/Reporting/getFullSLASummaries
+    """
+    tap_stream_id = 'skills_sla_summary'
+    key_properties = ['skillId']
+    path = 'skills/sla-summary'
+    replication_key = 'endDate'
+    valid_replication_keys = ['startDate', 'endDate']
+    data_key = 'serviceLevelSummaries'
+    convert_data_types = True
+
+    def get_records(self, bookmark_datetime: datetime, is_parent: bool = False) -> Iterator:
+        for start, end in self.generate_date_range(bookmark_datetime):
+            endpont = self.path
+            params = {
+                    "startDate": start,
+                    "endDate": end
+                }
+            paging = False
+            next_page = True
+
+            while next_page:
+                results = self.client.get(endpont, paging=paging, params=params)
+
+                if '_links' in results and results.get('_links', {}).get('next'):
+                    paging = True
+                    endpont = results.get('_links', {}).get('next')
+                    params = None
+                else:
+                    next_page = False
+
+                LOGGER.info('API call for {} stream returned {:d} records'.format(
+                    self.tap_stream_id, results.get('totalRecords'))
+                    )
+
+                # add `startDate` and `endDate` to each record
+                yield from (dict(rec, **{"startDate": start, "endDate": end}) 
+                            for rec in results.get(self.data_key))
 
 
 STREAMS = {
     'contacts_completed': ContactsCompleted,
     'skills_summary': SkillsSummary,
+    'skills_sla_summary': SkillsSLASummary,
 }
