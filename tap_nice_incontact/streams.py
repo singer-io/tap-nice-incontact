@@ -9,7 +9,7 @@ import singer
 from singer import Transformer, metrics, utils
 
 from tap_nice_incontact.client import NiceInContactClient, NiceInContactException
-from tap_nice_incontact.transform import convert_data_types
+from tap_nice_incontact.transform import convert_data_types, transform_iso8601_durations
 
 
 LOGGER = singer.get_logger()
@@ -112,7 +112,7 @@ class IncrementalStream(BaseStream):
         with metrics.record_counter(self.tap_stream_id) as counter:
             for record in self.get_records(bookmark_datetime):
                 if self.convert_data_types:
-                    record = convert_data_types(record, stream_schema, stream_metadata)
+                    record = convert_data_types(record, stream_schema)
 
                 transformed_record = transformer.transform(record, stream_schema, stream_metadata)
                 record_replication_value = singer.utils.strptime_to_utc(transformed_record[self.replication_key])
@@ -253,8 +253,38 @@ class SkillsSLASummary(IncrementalStream):
                             for rec in results.get(self.data_key))
 
 
+class TeamsPerformanceTotal(IncrementalStream):
+    """
+    Retrieve teams performace summary for a date-range.
+
+    Docs: https://developer.niceincontact.com/API/ReportingAPI#/Reporting/Team%20Performance%20Summary%20Totals%20all
+    """
+    tap_stream_id = 'teams_performance_total'
+    key_properties = ['teamId']
+    path = 'teams/performance-total'
+    replication_key = 'endDate'
+    valid_replication_keys = ['startDate', 'endDate']
+    data_key = 'teamPerformanceTotal'
+    convert_data_types = True
+
+    def get_records(self, bookmark_datetime: datetime, is_parent: bool = False) -> Iterator:
+        for start, end in self.generate_date_range(bookmark_datetime):
+            params = {
+                "startDate": start,
+                "endDate": end
+            }
+            
+            results = self.client.get(self.path, params=params)
+
+            data = transform_iso8601_durations(results.get(self.data_key))
+
+            # add `startDate` and `endDate` to each record
+            yield from (dict(rec, **params) for rec in data)
+
+
 STREAMS = {
     'contacts_completed': ContactsCompleted,
     'skills_summary': SkillsSummary,
     'skills_sla_summary': SkillsSLASummary,
+    'teams_performance_total': TeamsPerformanceTotal,
 }
