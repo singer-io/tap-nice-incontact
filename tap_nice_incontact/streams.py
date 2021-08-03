@@ -65,15 +65,24 @@ class BaseStream:
         return parent.get_records(config, is_parent=True)
 
     @staticmethod
-    def generate_date_range(start_date: datetime = None, end_date: datetime = utils.now()) -> Iterator[list]:
-        """Generate 1-day period date-range from the `start_date` and `end_date`"""
+    def generate_date_range(start_date: datetime = None,
+                            end_date: datetime = utils.now(),
+                            period: str = 'days') -> Iterator[list]:
+        """Generate 1-period period date-range from the `start_date` and `end_date`"""
         date_list = []
 
         new_start = start_date
-        for day in range(1, (end_date - start_date).days + 1):
-            new_end = start_date + timedelta(days=day)
-            date_list.append((new_start.isoformat(), new_end.isoformat()))
-            new_start = new_end
+
+        if period == 'days':
+            for day in range(1, (end_date - start_date).days + 1):
+                new_end = start_date + timedelta(days=day)
+                date_list.append((new_start.isoformat(), new_end.isoformat()))
+                new_start = new_end
+        elif period == 'hours':
+            for hour in range(1, int((end_date - start_date) / timedelta(hours=1)) + 1):
+                new_end = (start_date + timedelta(hours=hour))
+                date_list.append((new_start.isoformat(), new_end.isoformat()))
+                new_start = new_end
 
         yield from date_list
 
@@ -282,9 +291,91 @@ class TeamsPerformanceTotal(IncrementalStream):
             yield from (dict(rec, **params) for rec in data)
 
 
+class WFMSkillsContacts(IncrementalStream):
+    """
+    Retrieve WFM statistics for contacts for a date-range periods of 1 hour.
+
+    Docs: https://developer.niceincontact.com/API/ReportingAPI#/WFM%20Data/wfmskillscontacts
+    """
+    tap_stream_id = 'wfm_skills_contacts'
+    key_properties = ['skillId']
+    path = 'wfm-data/skills/contacts'
+    replication_key = 'endDate'
+    valid_replication_keys = ['startDate', 'endDate']
+    data_key = 'contactStats'
+
+    def get_records(self, bookmark_datetime: datetime, is_parent: bool = False) -> Iterator:
+        for start, end in self.generate_date_range(bookmark_datetime, period='hours'):
+            params = {
+                "startDate": start,
+                "endDate": end
+            }
+
+            results = self.client.get(self.path, params=params)
+
+            # add `startDate` and `endDate` to each record
+            yield from (dict(rec, **params) for rec in results.get(self.data_key))
+
+
+class WFMSkillsDialerContacts(IncrementalStream):
+    """
+    Retrieve WFM generated dialer-contact for a date-range periods of 1 hour.
+
+    Docs: https://developer.niceincontact.com/API/ReportingAPI#/WFM%20Data/wfmDailerContactStatistics
+    """
+    tap_stream_id = 'wfm_skills_dialer_contacts'
+    key_properties = ['skillId']
+    path = 'wfm-data/skills/dialer-contacts'
+    replication_key = 'endDate'
+    valid_replication_keys = ['startDate', 'endDate']
+    data_key = 'outboundStats'
+
+    def get_records(self, bookmark_datetime: datetime, is_parent: bool = False) -> Iterator:
+        for start, end in self.generate_date_range(bookmark_datetime, period='hours'):
+            params = {
+                "startDate": start,
+                "endDate": end
+            }
+
+            results = self.client.get(self.path, params=params)
+
+            # add `startDate` and `endDate` to each record
+            yield from (dict(rec, **params) for rec in results.get(self.data_key))
+
+class WFMSkillsAgentPerformance(IncrementalStream):
+    """
+    Retrieve WFM agent performance for a date-range periods of 1 day.
+
+    Docs: https://developer.niceincontact.com/API/ReportingAPI#/WFM%20Data/wfmAgentPerformance
+    """
+    tap_stream_id = 'wfm_skills_agent_performance'
+    key_properties = ['skillId', 'agentId']
+    path = 'wfm-data/skills/agent-performance'
+    replication_key = 'endDate'
+    valid_replication_keys = ['startDate', 'endDate']
+    data_key = 'skillsPerformance'
+
+    # TODO: confirm what "NOTE: Start and End date cannot span more than 31 days...~" means in API docs.
+
+    def get_records(self, bookmark_datetime: datetime, is_parent: bool = False) -> Iterator:
+        for start, end in self.generate_date_range(bookmark_datetime, period='days'):
+            params = {
+                "startDate": start,
+                "endDate": end
+            }
+
+            results = self.client.get(self.path, params=params)
+
+            # add `startDate` and `endDate` to each record
+            yield from (dict(rec, **params) for rec in results.get(self.data_key))
+
+
 STREAMS = {
     'contacts_completed': ContactsCompleted,
     'skills_summary': SkillsSummary,
     'skills_sla_summary': SkillsSLASummary,
     'teams_performance_total': TeamsPerformanceTotal,
+    'wfm_skills_contacts': WFMSkillsContacts,
+    'wfm_skills_dialer_contacts': WFMSkillsDialerContacts,
+    'wfm_skills_agent_performance': WFMSkillsAgentPerformance,
 }
