@@ -5,6 +5,20 @@
     ],
     "additionalProperties": false,
     "properties": {
+      "startDate": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "format": "date-time"
+      },
+      "endDate": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "format": "date-time"
+      },
       "teamId": {
         "type": [
           "null",
@@ -26,19 +40,19 @@
       "inboundTime": {
         "type": [
           "null",
-          "string"
+          "integer"
         ]
       },
       "inboundTalkTime": {
         "type": [
           "null",
-          "string"
+          "integer"
         ]
       },
       "inboundAvgTalkTime": {
         "type": [
           "null",
-          "string"
+          "integer"
         ]
       },
       "outboundHandled": {
@@ -50,19 +64,19 @@
       "outboundTime": {
         "type": [
           "null",
-          "string"
+          "integer"
         ]
       },
       "outboundTalkTime": {
         "type": [
           "null",
-          "string"
+          "integer"
         ]
       },
       "outboundAvgTalkTime": {
         "type": [
           "null",
-          "string"
+          "integer"
         ]
       },
       "totalHandled": {
@@ -80,55 +94,55 @@
       "totalTalkTime": {
         "type": [
           "null",
-          "string"
+          "integer"
         ]
       },
       "totalAvgTalkTime": {
         "type": [
           "null",
-          "string"
+          "integer"
         ]
       },
       "totalAvgHandleTime": {
         "type": [
           "null",
-          "string"
+          "integer"
         ]
       },
       "consultTime": {
         "type": [
           "null",
-          "string"
+          "integer"
         ]
       },
       "availableTime": {
         "type": [
           "null",
-          "string"
+          "integer"
         ]
       },
       "unavailableTime": {
         "type": [
           "null",
-          "string"
+          "integer"
         ]
       },
       "avgAvailableTime": {
         "type": [
           "null",
-          "string"
+          "integer"
         ]
       },
       "avgUnavailableTime": {
         "type": [
           "null",
-          "string"
+          "integer"
         ]
       },
       "acwTime": {
         "type": [
           "null",
-          "string"
+          "integer"
         ]
       },
       "refused": {
@@ -147,7 +161,7 @@
       "loginTime": {
         "type": [
           "null",
-          "string"
+          "integer"
         ]
       },
       "workingRate": {
