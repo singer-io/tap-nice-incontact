@@ -370,6 +370,30 @@ class WFMSkillsAgentPerformance(IncrementalStream):
             yield from (dict(rec, **params) for rec in results.get(self.data_key))
 
 
+class WFMAgents(IncrementalStream):
+    """
+    Docs: https://developer.niceincontact.com/API/ReportingAPI#/WFM%20Data/wfmDataAgent
+    """
+    tap_stream_id = 'wfm_agents'
+    key_properties = ['agentId']
+    path = 'wfm-data/agents'
+    replication_key = 'endDate'
+    valid_replication_keys = ['startDate', 'endDate']
+    data_key = 'wfoAgentSpecificStats'
+
+    def get_records(self, bookmark_datetime: datetime, is_parent: bool = False) -> Iterator:
+        for start, end in self.generate_date_range(bookmark_datetime, period='days'):
+            params = {
+                "startDate": start,
+                "endDate": end
+            }
+
+            results = self.client.get(self.path, params=params)
+
+            # add `startDate` and `endDate` to each record
+            yield from (dict(rec, **params) for rec in results.get(self.data_key))
+
+
 STREAMS = {
     'contacts_completed': ContactsCompleted,
     'skills_summary': SkillsSummary,
@@ -378,4 +402,5 @@ STREAMS = {
     'wfm_skills_contacts': WFMSkillsContacts,
     'wfm_skills_dialer_contacts': WFMSkillsDialerContacts,
     'wfm_skills_agent_performance': WFMSkillsAgentPerformance,
+    'wfm_agents': WFMAgents,
 }
