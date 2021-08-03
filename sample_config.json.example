@@ -1,0 +1,8 @@
+{
+  "start_date": "2017-01-01T00:00:00Z",
+  "api_key": "<NICE inContact API key>",
+  "api_secret": "NICE inContact API secret",
+  "api_cluster": "<NICE inContact instance cluster>",
+  "api_version": "<NICE inContact API version>",
+  "user_agent": "tap-nice-incontact <<api_user_email@your_company.com>>"
+}

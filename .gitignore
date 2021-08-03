@@ -104,3 +104,6 @@ state.json
 
 # VSCode
 .vscode
+
+# tap/target configs
+*config.json
