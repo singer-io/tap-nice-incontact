@@ -5,6 +5,20 @@
     ],
     "additionalProperties": false,
     "properties": {
+      "startDate": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "format": "date-time"
+      },
+      "endDate": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "format": "date-time"
+      },
       "businessUnitId": {
         "type": [
           "null",
@@ -50,7 +64,7 @@
       "halfHour": {
         "type": [
           "null",
-          "integer"
+          "string"
         ],
         "format": "date-time"
       },
