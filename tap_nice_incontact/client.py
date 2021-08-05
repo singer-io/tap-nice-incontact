@@ -175,7 +175,14 @@ class NiceInContactClient:
         elif response.status_code >= 400:
             raise NiceInContact4xxException(response.text)
 
-        results = response.json()
+        if response.status_code == 204:
+            LOGGER.info(
+                "No Content (204) returnted for {} API call to endpoint {}, with params {}".format(
+                    method.upper(), endpoint, params
+                ))
+            results = None
+        else:
+            results = response.json()
 
         return results
 
