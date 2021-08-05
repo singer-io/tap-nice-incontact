@@ -5,6 +5,20 @@
     ],
     "additionalProperties": false,
     "properties": {
+      "callStartDate": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "format": "date-time"
+      },
+      "callEndDate": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "format": "date-time"
+      },
       "businessUnitId": {
         "type": [
           "null",
