@@ -1,7 +1,8 @@
-import backoff
-
-from requests import Session, ConnectionError
 from datetime import datetime as dt, timedelta
+
+import backoff
+import requests
+
 from singer import get_logger
 
 LOGGER = get_logger()
@@ -39,7 +40,7 @@ class NiceInContact429Exception(NiceInContactException):
         self.message = message
         self.response = response
 
-# pylint: disable=missing-class-docstring
+# pylint: disable=missing-class-docstring,too-many-instance-attributes,too-few-public-methods
 class NiceInContactClient:
     def __init__(self,
                 api_key: str = None,
@@ -55,7 +56,7 @@ class NiceInContactClient:
         self.api_base_uri = API_BASE_URI.format(api_cluster, self.api_version)
         self.user_agent = user_agent
 
-        self.session = Session()
+        self.session = requests.Session()
 
         api_auth_domain = auth_domain if auth_domain else API_AUTH_DOMAIN
         self.auth_endpoint = API_AUTH_URI.format(api_auth_domain)
@@ -116,7 +117,7 @@ class NiceInContactClient:
     @backoff.on_exception(backoff.expo,
                         (NiceInContact5xxException,
                         NiceInContact4xxException,
-                        ConnectionError),
+                        requests.ConnectionError),
                         max_tries=MAX_RETRIES,
                         factor=2,
                         on_backoff=log_backoff_attempt)
@@ -132,9 +133,9 @@ class NiceInContactClient:
 
         :param method: The HTTP method to use: Ex. GET or POST.
         :param endpoint: The url for the HTTP request.
-        :param paging: A boolean for whether or not this is a sub-sequent 
+        :param paging: A boolean for whether or not this is a sub-sequent
                             paginated request.
-        :param headers: Any non-standard HTTP request headers required 
+        :param headers: Any non-standard HTTP request headers required
                             to make request.
         :param params: Any URI encoded query params required to make request.
         :param data: Any request body required to make request.
@@ -161,7 +162,7 @@ class NiceInContactClient:
         else:
             headers = {**default_headers}
 
-        response = self.session.request(method, 
+        response = self.session.request(method,
                                         full_url,
                                         headers=headers,
                                         params=params,

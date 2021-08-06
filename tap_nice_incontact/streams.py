@@ -1,14 +1,12 @@
-import csv
-import time
 import datetime
 
-from datetime import datetime as dt, timedelta, timezone
-from typing import Iterator, Tuple
+from datetime import timedelta
+from typing import Iterator
 
 import singer
 from singer import Transformer, metrics, utils
 
-from tap_nice_incontact.client import NiceInContactClient, NiceInContactException
+from tap_nice_incontact.client import NiceInContactClient
 from tap_nice_incontact.transform import convert_data_types, transform_iso8601_durations
 
 
@@ -98,6 +96,7 @@ class BaseStream:
         yield from date_list
 
 
+# pylint: disable=abstract-method,useless-super-delegation
 class IncrementalStream(BaseStream):
     """
     A child class of a base stream used to represent streams that use the
@@ -111,7 +110,12 @@ class IncrementalStream(BaseStream):
     def __init__(self, client):
         super().__init__(client)
 
-    def sync(self, state: dict, stream_schema: dict, stream_metadata: dict, config: dict, transformer: Transformer) -> dict:
+    def sync(self,
+            state: dict,
+            stream_schema: dict,
+            stream_metadata: dict,
+            config: dict,
+            transformer: Transformer) -> dict:
         """
         The sync logic for an incremental stream.
 
@@ -135,17 +139,22 @@ class IncrementalStream(BaseStream):
                     record = convert_data_types(record, stream_schema)
 
                 transformed_record = transformer.transform(record, stream_schema, stream_metadata)
+                # pylint: disable=line-too-long
                 record_replication_value = singer.utils.strptime_to_utc(transformed_record[self.replication_key])
                 if record_replication_value >= singer.utils.strptime_to_utc(max_record_value):
                     singer.write_record(self.tap_stream_id, transformed_record)
                     counter.increment()
                     max_record_value = record_replication_value.isoformat()
 
-        state = singer.write_bookmark(state, self.tap_stream_id, self.replication_key, max_record_value)
+        state = singer.write_bookmark(state,
+                                    self.tap_stream_id,
+                                    self.replication_key,
+                                    max_record_value)
         singer.write_state(state)
         return state
 
 
+# pylint: disable=abstract-method,useless-super-delegation
 class FullTableStream(BaseStream):
     """
     A child class of a base stream used to represent streams that use the
@@ -158,7 +167,12 @@ class FullTableStream(BaseStream):
     def __init__(self, client):
         super().__init__(client)
 
-    def sync(self, state: dict, stream_schema: dict, stream_metadata: dict, config: dict, transformer: Transformer) -> dict:
+    def sync(self,
+            state: dict,
+            stream_schema: dict,
+            stream_metadata: dict,
+            config: dict,
+            transformer: Transformer) -> dict:
         """
         The sync logic for an full table stream.
 
@@ -323,7 +337,7 @@ class TeamsPerformanceTotal(IncrementalStream):
                 "startDate": start,
                 "endDate": end
             }
-            
+
             results = self.client.get(self.path, params=params)
 
             data = transform_iso8601_durations(results.get(self.data_key))

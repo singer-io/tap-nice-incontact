@@ -6,7 +6,7 @@ from singer.transform import SchemaMismatch
 
 def convert_data_types(data: dict, schema: dict) -> dict:
     """
-    Function to convert NICE inContact API returned data to the correct 
+    Function to convert NICE inContact API returned data to the correct
         schema date type. Some endpoints return all fields as strings.
 
     :param data: A dictionary containing a single record from API response.
@@ -17,7 +17,7 @@ def convert_data_types(data: dict, schema: dict) -> dict:
     converted_data = {}
     error_message = []
 
-    for field, value in data.items():        
+    for field, value in data.items():
         field_prop = schema.get('properties', {}).get(field)
 
         if field not in schema.get('properties').keys():
