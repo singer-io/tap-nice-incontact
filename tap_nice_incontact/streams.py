@@ -84,7 +84,7 @@ class BaseStream:
                 date_list.append((new_start.isoformat(), new_end.isoformat()))
                 new_start = new_end
         elif period == 'minutes':
-            for minutes in range(5, int((end_date - start_date) / timedelta(minutes=5)) + 5, 5):
+            for minutes in range(5, int((end_date - start_date) / timedelta(minutes=1)) + 5, 5):
                 new_end = start_date + timedelta(minutes=minutes)
                 date_list.append((new_start.isoformat(), new_end.isoformat()))
                 new_start = new_end
