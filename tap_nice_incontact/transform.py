@@ -10,7 +10,7 @@ def convert_data_types(data: dict, schema: dict) -> dict:
         schema date type. Some endpoints return all fields as strings.
 
     :param data: A dictionary containing a single record from API response.
-    :param scheme: A dictionary with the Singer schema for the relevant stream.
+    :param schema: A dictionary with the Singer schema for the relevant stream.
     :return: A dictionary with the data converted to the correct data type
         based on the streams schema.
     """
