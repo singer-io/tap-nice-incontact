@@ -227,7 +227,7 @@ class SkillsSummary(IncrementalStream):
     Docs: https://developer.niceincontact.com/API/ReportingAPI#/Reporting/getFullSkillSummaries
     """
     tap_stream_id = 'skills_summary'
-    key_properties = ['skillId']
+    key_properties = ['skillId', 'startDate', 'endDate']
     path = 'skills/summary'
     replication_key = 'endDate'
     valid_replication_keys = ['startDate', 'endDate']
@@ -263,7 +263,7 @@ class SkillsSLASummary(IncrementalStream):
     Docs: https://developer.niceincontact.com/API/ReportingAPI#/Reporting/getFullSLASummaries
     """
     tap_stream_id = 'skills_sla_summary'
-    key_properties = ['skillId']
+    key_properties = ['skillId', 'startDate', 'endDate']
     path = 'skills/sla-summary'
     replication_key = 'endDate'
     valid_replication_keys = ['startDate', 'endDate']
@@ -315,7 +315,7 @@ class TeamsPerformanceTotal(IncrementalStream):
     Docs: https://developer.niceincontact.com/API/ReportingAPI#/Reporting/Team%20Performance%20Summary%20Totals%20all
     """
     tap_stream_id = 'teams_performance_total'
-    key_properties = ['teamId']
+    key_properties = ['teamId', 'startDate', 'endDate']
     path = 'teams/performance-total'
     replication_key = 'endDate'
     valid_replication_keys = ['startDate', 'endDate']
@@ -353,7 +353,7 @@ class WFMSkillsContacts(IncrementalStream):
     Docs: https://developer.niceincontact.com/API/ReportingAPI#/WFM%20Data/wfmskillscontacts
     """
     tap_stream_id = 'wfm_skills_contacts'
-    key_properties = ['skillId']
+    key_properties = ['skillId', 'intervalStartDate']
     path = 'wfm-data/skills/contacts'
     replication_key = 'endDate'
     valid_replication_keys = ['startDate', 'endDate']
@@ -383,7 +383,7 @@ class WFMSkillsDialerContacts(IncrementalStream):
     Docs: https://developer.niceincontact.com/API/ReportingAPI#/WFM%20Data/wfmDailerContactStatistics
     """
     tap_stream_id = 'wfm_skills_dialer_contacts'
-    key_properties = ['skillId']
+    key_properties = ['skillId', 'intervalStartDate']
     path = 'wfm-data/skills/dialer-contacts'
     replication_key = 'endDate'
     valid_replication_keys = ['startDate', 'endDate']
@@ -412,7 +412,7 @@ class WFMSkillsAgentPerformance(IncrementalStream):
     Docs: https://developer.niceincontact.com/API/ReportingAPI#/WFM%20Data/wfmAgentPerformance
     """
     tap_stream_id = 'wfm_skills_agent_performance'
-    key_properties = ['skillId', 'agentId']
+    key_properties = ['skillId', 'agentId', 'halfHour']
     path = 'wfm-data/skills/agent-performance'
     replication_key = 'endDate'
     valid_replication_keys = ['startDate', 'endDate']
@@ -447,7 +447,7 @@ class WFMAgents(IncrementalStream):
     Docs: https://developer.niceincontact.com/API/ReportingAPI#/WFM%20Data/wfmDataAgent
     """
     tap_stream_id = 'wfm_agents'
-    key_properties = ['agentId']
+    key_properties = ['agentId', 'modDateTime']
     path = 'wfm-data/agents'
     replication_key = 'endDate'
     valid_replication_keys = ['startDate', 'endDate']
@@ -482,7 +482,7 @@ class WFMAgentsScheduleAdherence(IncrementalStream):
     Docs: https://developer.niceincontact.com/API/ReportingAPI#/WFM%20Data/wfmAdherenceStatistics
     """
     tap_stream_id = 'wfm_agents_schedule_adherence'
-    key_properties = ['agentId', 'agentStateId']
+    key_properties = ['agentId', 'agentStateId', 'startDate']
     path = 'wfm-data/agents/schedule-adherence'
     replication_key = 'callEndDate'
     valid_replication_keys = ['startDate', 'callEndDate']
@@ -517,7 +517,7 @@ class WFMAgentsScorecards(IncrementalStream):
     Docs: https://developer.niceincontact.com/API/ReportingAPI#/WFM%20Data/wfmAgentScorecard
     """
     tap_stream_id = 'wfm_agents_scorecards'
-    key_properties = ['agentId']
+    key_properties = ['agentId', 'startDate']
     path = 'wfm-data/agents/scorecards'
     replication_key = 'callEndDate'
     valid_replication_keys = ['startDate', 'callEndDate']
