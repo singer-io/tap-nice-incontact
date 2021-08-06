@@ -30,28 +30,26 @@ class BaseStream:
     parent = None
     data_key = None
     convert_data_types = False
+    default_period = 'days'
 
     def __init__(self, client: NiceInContactClient):
         self.client = client
 
-    def get_records(self, bookmark_datetime: datetime = None, is_parent: bool = False) -> list:
+    def get_records(self,
+                    config: dict = None,
+                    bookmark_datetime: datetime = None,
+                    is_parent: bool = False) -> list:
         """
         Returns a list of records for that stream.
 
         :param config: The tap config file
+        :param bookmark_datetime: The stream bookmark datetime
+            object for INCREMENTAL replication
         :param is_parent: If true, may change the type of data
             that is returned for a child stream to consume
         :return: list of records
         """
         raise NotImplementedError("Child classes of BaseStream require implementation")
-
-    def set_parameters(self, params: dict) -> None:
-        """
-        Sets or updates the `params` attribute of a class.
-
-        :param params: Dictionary of parameters to set or update the class with
-        """
-        self.params = params
 
     def get_parent_data(self, config: dict = None) -> list:
         """
@@ -68,7 +66,15 @@ class BaseStream:
     def generate_date_range(start_date: datetime = None,
                             end_date: datetime = utils.now(),
                             period: str = 'days') -> Iterator[list]:
-        """Generates 1-day, 1-hour, or 5-minute periods date-range from `start_date` to `end_date`"""
+        """
+        Generates 1-day, 1-hour, or 5-minute periods date-range
+            from `start_date` to `end_date`
+
+        :param start_date: The starting datetime to use
+        :param end_date: The ending datetime to use, defaults to now
+        :param period: The date-range period between dates,
+            defaults to 'days'
+        """
         date_list = []
 
         new_start = start_date
@@ -124,7 +130,7 @@ class IncrementalStream(BaseStream):
         max_record_value = start_time
 
         with metrics.record_counter(self.tap_stream_id) as counter:
-            for record in self.get_records(bookmark_datetime):
+            for record in self.get_records(config, bookmark_datetime):
                 if self.convert_data_types:
                     record = convert_data_types(record, stream_schema)
 
@@ -182,11 +188,14 @@ class ContactsCompleted(IncrementalStream):
     tap_stream_id = 'contacts_completed'
     key_properties = ['contactId']
     path = 'contacts/completed'
-    replication_key = 'lastUpdateTime' 
+    replication_key = 'lastUpdateTime'
     valid_replication_keys = ['lastUpdateTime'] # `lastPollTime` is suggested by the Docs to be used in subsequent requests
     data_key = 'completedContacts'
 
-    def get_records(self, bookmark_datetime: datetime, is_parent: bool = False) -> Iterator[list]:
+    def get_records(self,
+                    config: dict = None,
+                    bookmark_datetime: datetime = None,
+                    is_parent: bool = False) -> Iterator[list]:
         params = {
             "updatedSince": bookmark_datetime.isoformat(),
             "orderBy": self.replication_key + ' asc'
@@ -199,7 +208,7 @@ class ContactsCompleted(IncrementalStream):
 
 class SkillsSummary(IncrementalStream):
     """
-    Retrieve skill summaries for date-range periods of 1 day.
+    Retrieve skill summaries for a default date-range periods of 1 day.
 
     Docs: https://developer.niceincontact.com/API/ReportingAPI#/Reporting/getFullSkillSummaries
     """
@@ -210,9 +219,18 @@ class SkillsSummary(IncrementalStream):
     valid_replication_keys = ['startDate', 'endDate']
     data_key = 'skillSummaries'
     convert_data_types = True
+    default_period = 'days'
 
-    def get_records(self, bookmark_datetime: datetime, is_parent: bool = False) -> Iterator:
-        for start, end in self.generate_date_range(bookmark_datetime, period='days'):
+    def get_records(self,
+                    config: dict = None,
+                    bookmark_datetime: datetime = None,
+                    is_parent: bool = False) -> Iterator:
+        if config.get('periods', {}).get(self.tap_stream_id):
+            period = config.get('periods', {}).get(self.tap_stream_id)
+        else:
+            period = self.default_period
+
+        for start, end in self.generate_date_range(bookmark_datetime, period=period):
             params = {
                 "startDate": start,
                 "endDate": end
@@ -226,7 +244,7 @@ class SkillsSummary(IncrementalStream):
 
 class SkillsSLASummary(IncrementalStream):
     """
-    Retrieve skill SLA compliance summaries for date-range periods of 1 day.
+    Retrieve skill SLA compliance summaries for a default date-range periods of 1 day.
 
     Docs: https://developer.niceincontact.com/API/ReportingAPI#/Reporting/getFullSLASummaries
     """
@@ -237,9 +255,18 @@ class SkillsSLASummary(IncrementalStream):
     valid_replication_keys = ['startDate', 'endDate']
     data_key = 'serviceLevelSummaries'
     convert_data_types = True
+    default_period = 'days'
 
-    def get_records(self, bookmark_datetime: datetime, is_parent: bool = False) -> Iterator:
-        for start, end in self.generate_date_range(bookmark_datetime, period='days'):
+    def get_records(self,
+                    config: dict = None,
+                    bookmark_datetime: datetime = None,
+                    is_parent: bool = False) -> Iterator:
+        if config.get('periods', {}).get(self.tap_stream_id):
+            period = config.get('periods', {}).get(self.tap_stream_id)
+        else:
+            period = self.default_period
+
+        for start, end in self.generate_date_range(bookmark_datetime, period=period):
             endpont = self.path
             params = {
                     "startDate": start,
@@ -263,13 +290,13 @@ class SkillsSLASummary(IncrementalStream):
                     )
 
                 # add `startDate` and `endDate` to each record
-                yield from (dict(rec, **{"startDate": start, "endDate": end}) 
+                yield from (dict(rec, **{"startDate": start, "endDate": end})
                             for rec in results.get(self.data_key))
 
 
 class TeamsPerformanceTotal(IncrementalStream):
     """
-    Retrieve teams performace summary for date-range periods of 1 day.
+    Retrieve teams performace summary for a default date-range periods of 1 day.
 
     Docs: https://developer.niceincontact.com/API/ReportingAPI#/Reporting/Team%20Performance%20Summary%20Totals%20all
     """
@@ -280,9 +307,18 @@ class TeamsPerformanceTotal(IncrementalStream):
     valid_replication_keys = ['startDate', 'endDate']
     data_key = 'teamPerformanceTotal'
     convert_data_types = True
+    default_period = 'days'
 
-    def get_records(self, bookmark_datetime: datetime, is_parent: bool = False) -> Iterator:
-        for start, end in self.generate_date_range(bookmark_datetime, period='days'):
+    def get_records(self,
+                    config: dict = None,
+                    bookmark_datetime: datetime = None,
+                    is_parent: bool = False) -> Iterator:
+        if config.get('periods', {}).get(self.tap_stream_id):
+            period = config.get('periods', {}).get(self.tap_stream_id)
+        else:
+            period = self.default_period
+
+        for start, end in self.generate_date_range(bookmark_datetime, period=period):
             params = {
                 "startDate": start,
                 "endDate": end
@@ -308,9 +344,13 @@ class WFMSkillsContacts(IncrementalStream):
     replication_key = 'endDate'
     valid_replication_keys = ['startDate', 'endDate']
     data_key = 'contactStats'
+    default_period = 'hours'
 
-    def get_records(self, bookmark_datetime: datetime, is_parent: bool = False) -> Iterator:
-        for start, end in self.generate_date_range(bookmark_datetime, period='hours'):
+    def get_records(self,
+                    config: dict = None,
+                    bookmark_datetime: datetime = None,
+                    is_parent: bool = False) -> Iterator:
+        for start, end in self.generate_date_range(bookmark_datetime, period=self.default_period):
             params = {
                 "startDate": start,
                 "endDate": end
@@ -334,9 +374,13 @@ class WFMSkillsDialerContacts(IncrementalStream):
     replication_key = 'endDate'
     valid_replication_keys = ['startDate', 'endDate']
     data_key = 'outboundStats'
+    default_period = 'hours'
 
-    def get_records(self, bookmark_datetime: datetime, is_parent: bool = False) -> Iterator:
-        for start, end in self.generate_date_range(bookmark_datetime, period='hours'):
+    def get_records(self,
+                    config: dict = None,
+                    bookmark_datetime: datetime = None,
+                    is_parent: bool = False) -> Iterator:
+        for start, end in self.generate_date_range(bookmark_datetime, period=self.default_period):
             params = {
                 "startDate": start,
                 "endDate": end
@@ -349,7 +393,7 @@ class WFMSkillsDialerContacts(IncrementalStream):
 
 class WFMSkillsAgentPerformance(IncrementalStream):
     """
-    Retrieve WFM agent performance for date-range periods of 1 day.
+    Retrieve WFM agent performance for a default date-range periods of 1 day.
 
     Docs: https://developer.niceincontact.com/API/ReportingAPI#/WFM%20Data/wfmAgentPerformance
     """
@@ -359,11 +403,18 @@ class WFMSkillsAgentPerformance(IncrementalStream):
     replication_key = 'endDate'
     valid_replication_keys = ['startDate', 'endDate']
     data_key = 'skillsPerformance'
+    default_period = 'days'
 
-    # TODO: confirm what "NOTE: Start and End date cannot span more than 31 days...~" means in API docs.
+    def get_records(self,
+                    config: dict = None,
+                    bookmark_datetime: datetime = None,
+                    is_parent: bool = False) -> Iterator:
+        if config.get('periods', {}).get(self.tap_stream_id):
+            period = config.get('periods', {}).get(self.tap_stream_id)
+        else:
+            period = self.default_period
 
-    def get_records(self, bookmark_datetime: datetime, is_parent: bool = False) -> Iterator:
-        for start, end in self.generate_date_range(bookmark_datetime, period='days'):
+        for start, end in self.generate_date_range(bookmark_datetime, period=period):
             params = {
                 "startDate": start,
                 "endDate": end
@@ -377,7 +428,8 @@ class WFMSkillsAgentPerformance(IncrementalStream):
 
 class WFMAgents(IncrementalStream):
     """
-    Retrieve WFM agent metadata changes for data-range periods of 1 day.
+    Retrieve WFM agent metadata changes for a default date-range periods of 1 day.
+
     Docs: https://developer.niceincontact.com/API/ReportingAPI#/WFM%20Data/wfmDataAgent
     """
     tap_stream_id = 'wfm_agents'
@@ -386,9 +438,18 @@ class WFMAgents(IncrementalStream):
     replication_key = 'endDate'
     valid_replication_keys = ['startDate', 'endDate']
     data_key = 'wfoAgentSpecificStats'
+    default_period = 'days'
 
-    def get_records(self, bookmark_datetime: datetime, is_parent: bool = False) -> Iterator:
-        for start, end in self.generate_date_range(bookmark_datetime, period='days'):
+    def get_records(self,
+                    config: dict = None,
+                    bookmark_datetime: datetime = None,
+                    is_parent: bool = False) -> Iterator:
+        if config.get('periods', {}).get(self.tap_stream_id):
+            period = config.get('periods', {}).get(self.tap_stream_id)
+        else:
+            period = self.default_period
+
+        for start, end in self.generate_date_range(bookmark_datetime, period=period):
             params = {
                 "startDate": start,
                 "endDate": end
@@ -412,9 +473,13 @@ class WFMAgentsScheduleAdherence(IncrementalStream):
     replication_key = 'callEndDate'
     valid_replication_keys = ['startDate', 'callEndDate']
     data_key = 'agentStateHistory'
+    default_period = 'minutes'
 
-    def get_records(self, bookmark_datetime: datetime, is_parent: bool = False) -> Iterator:
-        for start, end in self.generate_date_range(bookmark_datetime, period='minutes'):
+    def get_records(self,
+                    config: dict = None,
+                    bookmark_datetime: datetime = None,
+                    is_parent: bool = False) -> Iterator:
+        for start, end in self.generate_date_range(bookmark_datetime, period=self.default_period):
             params = {
                 "startDate": start,
                 "endDate": end
@@ -433,7 +498,7 @@ class WFMAgentsScheduleAdherence(IncrementalStream):
 
 class WFMAgentsScorecards(IncrementalStream):
     """
-    Retrieve WFM agent scorecards statistics for date-range periods of 1 day.
+    Retrieve WFM agent scorecards statistics for a default date-range periods of 1 day.
 
     Docs: https://developer.niceincontact.com/API/ReportingAPI#/WFM%20Data/wfmAgentScorecard
     """
@@ -443,15 +508,28 @@ class WFMAgentsScorecards(IncrementalStream):
     replication_key = 'callEndDate'
     valid_replication_keys = ['startDate', 'callEndDate']
     data_key = 'wfmScorecardStats'
+    default_period = 'days'
 
-    def get_records(self, bookmark_datetime: datetime, is_parent: bool = False) -> Iterator:
-        for start, end in self.generate_date_range(bookmark_datetime, period='days'):
+    def get_records(self,
+                    config: dict = None,
+                    bookmark_datetime: datetime = None,
+                    is_parent: bool = False) -> Iterator:
+        if config.get('periods', {}).get(self.tap_stream_id):
+            period = config.get('periods', {}).get(self.tap_stream_id)
+        else:
+            period = self.default_period
+
+        for start, end in self.generate_date_range(bookmark_datetime, period=period):
             params = {
                 "startDate": start,
                 "endDate": end
             }
 
             results = self.client.get(self.path, params=params)
+
+            # skip over date-range periods that don't return data (204)
+            if not results:
+                continue
 
             # add `callStartDate` and `callEndDate` to each record
             yield from (dict(rec, **{"callStartDate": start, "callEndDate": end})

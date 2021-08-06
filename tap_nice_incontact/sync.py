@@ -9,7 +9,17 @@ LOGGER = singer.get_logger()
 def sync(config, state, catalog):
     """ Sync data from tap source """
 
-    client = NiceInContactClient(**config)
+    client_params = {
+        'api_key': config.get('api_key'),
+        'api_secret': config.get('api_secret'),
+        'api_cluster': config.get('api_cluster'),
+        'api_version': config.get('api_version'),
+        'auth_domain': config.get('auth_domain'),
+        'user_agent': config.get('user_agent'),
+        'start_date': config.get('start_date')
+    }
+
+    client = NiceInContactClient(**client_params)
 
     with Transformer() as transformer:
         for stream in catalog.get_selected_streams(state):

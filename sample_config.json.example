@@ -1,8 +1,16 @@
 {
   "start_date": "2017-01-01T00:00:00Z",
   "api_key": "<NICE inContact API key>",
-  "api_secret": "NICE inContact API secret",
+  "api_secret": "<NICE inContact API secret>",
   "api_cluster": "<NICE inContact instance cluster>",
   "api_version": "<NICE inContact API version>",
-  "user_agent": "tap-nice-incontact <<api_user_email@your_company.com>>"
+  "user_agent": "tap-nice-incontact <<api_user_email@your_company.com>>",
+  "periods": {
+    "skills_summary": "days",
+    "skills_sla_summary": "days",
+    "teams_performance_total": "days",
+    "wfm_skills_agent_performance": "days",
+    "wfm_agents": "days",
+    "wfm_agents_scorecards": "days"
+  }
 }
