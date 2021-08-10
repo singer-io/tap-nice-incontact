@@ -222,20 +222,30 @@ class ContactsCompleted(IncrementalStream):
                     bookmark_datetime: datetime = None,
                     is_parent: bool = False) -> Iterator[list]:
         bookmark_datetime = self.check_start_date(bookmark_datetime, 30)
+        records = True
+        skip = 0
 
-        params = {
-            "updatedSince": bookmark_datetime.isoformat(),
-            "orderBy": self.replication_key + ' asc'
-        }
+        # API is limited to 10K records per response, use skip param to get all records
+        while records:
+            params = {
+                "updatedSince": bookmark_datetime.isoformat(),
+                "orderBy": self.replication_key + ' asc',
+                "skip": skip
+            }
 
-        response = self.client.get(self.path, params=params)
+            response = self.client.get(self.path, params=params)
 
-        yield from response.get(self.data_key)
+            if not response:
+                records = False
+            else:
+                skip += len(response.get(self.data_key))
+
+                yield from response.get(self.data_key)
 
 
 class SkillsSummary(IncrementalStream):
     """
-    Retrieve skill summaries for a default date-range periods of 1 day.
+    Retrieve skill summaries for a default date-range periods of 1 hour.
 
     Docs: https://developer.niceincontact.com/API/ReportingAPI#/Reporting/getFullSkillSummaries
     """
@@ -246,7 +256,7 @@ class SkillsSummary(IncrementalStream):
     valid_replication_keys = ['startDate', 'endDate']
     data_key = 'skillSummaries'
     convert_data_types = True
-    default_period = 'days'
+    default_period = 'hours'
 
     def get_records(self,
                     config: dict = None,
@@ -271,7 +281,7 @@ class SkillsSummary(IncrementalStream):
 
 class SkillsSLASummary(IncrementalStream):
     """
-    Retrieve skill SLA compliance summaries for a default date-range periods of 1 day.
+    Retrieve skill SLA compliance summaries for a default date-range periods of 1 hour.
 
     Docs: https://developer.niceincontact.com/API/ReportingAPI#/Reporting/getFullSLASummaries
     """
@@ -282,7 +292,7 @@ class SkillsSLASummary(IncrementalStream):
     valid_replication_keys = ['startDate', 'endDate']
     data_key = 'serviceLevelSummaries'
     convert_data_types = True
-    default_period = 'days'
+    default_period = 'hours'
 
     def get_records(self,
                     config: dict = None,
@@ -323,7 +333,7 @@ class SkillsSLASummary(IncrementalStream):
 
 class TeamsPerformanceTotal(IncrementalStream):
     """
-    Retrieve teams performace summary for a default date-range periods of 1 day.
+    Retrieve teams performace summary for a default date-range periods of 1 hour.
 
     Docs: https://developer.niceincontact.com/API/ReportingAPI#/Reporting/Team%20Performance%20Summary%20Totals%20all
     """
@@ -334,7 +344,7 @@ class TeamsPerformanceTotal(IncrementalStream):
     valid_replication_keys = ['startDate', 'endDate']
     data_key = 'teamPerformanceTotal'
     convert_data_types = True
-    default_period = 'days'
+    default_period = 'hours'
 
     def get_records(self,
                     config: dict = None,
@@ -420,7 +430,7 @@ class WFMSkillsDialerContacts(IncrementalStream):
 
 class WFMSkillsAgentPerformance(IncrementalStream):
     """
-    Retrieve WFM agent performance for a default date-range periods of 1 day.
+    Retrieve WFM agent performance for a default date-range periods of 1 hour.
 
     Docs: https://developer.niceincontact.com/API/ReportingAPI#/WFM%20Data/wfmAgentPerformance
     """
@@ -430,7 +440,7 @@ class WFMSkillsAgentPerformance(IncrementalStream):
     replication_key = 'endDate'
     valid_replication_keys = ['startDate', 'endDate']
     data_key = 'skillsPerformance'
-    default_period = 'days'
+    default_period = 'hours'
 
     def get_records(self,
                     config: dict = None,
@@ -455,7 +465,7 @@ class WFMSkillsAgentPerformance(IncrementalStream):
 
 class WFMAgents(IncrementalStream):
     """
-    Retrieve WFM agent metadata changes for a default date-range periods of 1 day.
+    Retrieve WFM agent metadata changes for a default date-range periods of 1 hour.
 
     Docs: https://developer.niceincontact.com/API/ReportingAPI#/WFM%20Data/wfmDataAgent
     """
@@ -465,7 +475,7 @@ class WFMAgents(IncrementalStream):
     replication_key = 'endDate'
     valid_replication_keys = ['startDate', 'endDate']
     data_key = 'wfoAgentSpecificStats'
-    default_period = 'days'
+    default_period = 'hours'
 
     def get_records(self,
                     config: dict = None,
@@ -525,7 +535,7 @@ class WFMAgentsScheduleAdherence(IncrementalStream):
 
 class WFMAgentsScorecards(IncrementalStream):
     """
-    Retrieve WFM agent scorecards statistics for a default date-range periods of 1 day.
+    Retrieve WFM agent scorecards statistics for a default date-range periods of 1 hour.
 
     Docs: https://developer.niceincontact.com/API/ReportingAPI#/WFM%20Data/wfmAgentScorecard
     """
@@ -535,7 +545,7 @@ class WFMAgentsScorecards(IncrementalStream):
     replication_key = 'callEndDate'
     valid_replication_keys = ['startDate', 'callEndDate']
     data_key = 'wfmScorecardStats'
-    default_period = 'days'
+    default_period = 'hour'
 
     def get_records(self,
                     config: dict = None,
