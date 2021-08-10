@@ -148,7 +148,7 @@
       "contactsOutOfSLA": {
         "type": [
           "null",
-          "string"
+          "integer"
         ]
       },
       "contactsWithinSLA": {
