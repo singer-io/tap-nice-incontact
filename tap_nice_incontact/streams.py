@@ -95,6 +95,17 @@ class BaseStream:
 
         yield from date_list
 
+    @staticmethod
+    def check_start_date(bookmark_datetime: datetime = None, days: int = 31) -> datetime:
+        """Check in the bookmark_datetime is more than n days in the past"""
+
+        n_days = utils.now() - timedelta(days=days)
+
+        if bookmark_datetime < n_days:
+            return n_days
+        else:
+            return bookmark_datetime
+
 
 # pylint: disable=abstract-method,useless-super-delegation
 class IncrementalStream(BaseStream):
@@ -210,6 +221,8 @@ class ContactsCompleted(IncrementalStream):
                     config: dict = None,
                     bookmark_datetime: datetime = None,
                     is_parent: bool = False) -> Iterator[list]:
+        bookmark_datetime = self.check_start_date(bookmark_datetime, 30)
+
         params = {
             "updatedSince": bookmark_datetime.isoformat(),
             "orderBy": self.replication_key + ' asc'
