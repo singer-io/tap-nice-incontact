@@ -1,3 +1,4 @@
+import json
 from isodate import parse_duration
 from isodate.isoerror import ISO8601Error
 
@@ -27,8 +28,11 @@ def convert_data_types(data: dict, schema: dict) -> dict:
         if 'integer' in field_prop.get('type') and not isinstance(value, int):
             value = int(value)
 
-        if field_prop.get('format') == 'singer.decimal' and  not isinstance(value, str):
+        if field_prop.get('format') == 'singer.decimal' and not isinstance(value, str):
             value = str(value)
+
+        if 'boolean' in field_prop.get('type') and not isinstance(value, bool):
+            value = bool(json.loads(value.lower()))
 
         converted_data.update({field: value})
 
