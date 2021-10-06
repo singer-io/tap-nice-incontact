@@ -39,7 +39,7 @@ The tap accepts the following config items:
 | `api_key` | string | yes | NICE inContact API key (see [Authentication](#Authentication)) |
 | `api_secret` | string | yes | NICE inContact API secret (see [Authentication](#Authentication)) |
 | `api_cluster` | string | yes | NICE inContact instance cluster. Example: `"c42"` |
-| `api_version` | string | yes| NICE inContact API version. Default is  `"21.0"` |
+| `api_version` | string | no | NICE inContact API version. Default is  `"21.0"` |
 | `user_agent` | string | yes | Process and email for API logging purposes. Example: `tap-nice-incontact <api_user_email@your_company.com>` |
 | `auth_domain` | string | no | The NICE inContact auth domain/region to use. Default is `"na1"`. See [Authentication](#Authentication) for more. |
 | `periods` | object | no | stream specific reporting periods (see [below](#Reporting%20Periods)) |
