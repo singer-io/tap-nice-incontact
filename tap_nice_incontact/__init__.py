@@ -9,7 +9,6 @@ REQUIRED_CONFIG_KEYS = [
     "api_key",
     "api_secret",
     "api_cluster",
-    "api_version",
     "user_agent"
     ]
 
