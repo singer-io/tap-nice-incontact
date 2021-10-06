@@ -1,16 +1,10 @@
 from setuptools import find_packages, setup
 from os.path import abspath, dirname, join
 
-ROOT_DIR = abspath(dirname(__file__))
-
-with open(join(ROOT_DIR, "README.md"), encoding="utf-8") as f:
-    readme = f.read()
-
 setup(
     name="tap-nice-incontact",
-    version="0.1.0",
+    version="0.1.1",
     description="Singer.io tap for extracting data from the NICE InContact Reporting API",
-    long_description=readme,
     author="Stitch",
     url="http://singer.io",
     classifiers=["Programming Language :: Python :: 3 :: Only"],
