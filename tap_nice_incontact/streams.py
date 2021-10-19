@@ -103,8 +103,8 @@ class BaseStream:
 
         if bookmark_datetime < n_days:
             return n_days
-        else:
-            return bookmark_datetime
+
+        return bookmark_datetime
 
 
 # pylint: disable=abstract-method,useless-super-delegation
@@ -264,7 +264,7 @@ class SkillsSummary(IncrementalStream):
                     config: dict = None,
                     bookmark_datetime: datetime = None,
                     is_parent: bool = False) -> Iterator:
-        if config.get('periods', {}).get(self.tap_stream_id):
+        if config.get('periods'):
             period = config.get('periods', {}).get(self.tap_stream_id)
         else:
             period = self.default_period
@@ -300,13 +300,13 @@ class SkillsSLASummary(IncrementalStream):
                     config: dict = None,
                     bookmark_datetime: datetime = None,
                     is_parent: bool = False) -> Iterator:
-        if config.get('periods', {}).get(self.tap_stream_id):
+        if config.get('periods'):
             period = config.get('periods', {}).get(self.tap_stream_id)
         else:
             period = self.default_period
 
         for start, end in self.generate_date_range(bookmark_datetime, period=period):
-            endpont = self.path
+            endpoint = self.path
             params = {
                     "startDate": start,
                     "endDate": end
@@ -315,11 +315,11 @@ class SkillsSLASummary(IncrementalStream):
             next_page = True
 
             while next_page:
-                results = self.client.get(endpont, paging=paging, params=params)
+                results = self.client.get(endpoint, paging=paging, params=params)
 
                 if '_links' in results and results.get('_links', {}).get('next'):
                     paging = True
-                    endpont = results.get('_links', {}).get('next')
+                    endpoint = results.get('_links', {}).get('next')
                     params = None
                 else:
                     next_page = False
@@ -352,7 +352,7 @@ class TeamsPerformanceTotal(IncrementalStream):
                     config: dict = None,
                     bookmark_datetime: datetime = None,
                     is_parent: bool = False) -> Iterator:
-        if config.get('periods', {}).get(self.tap_stream_id):
+        if config.get('periods'):
             period = config.get('periods', {}).get(self.tap_stream_id)
         else:
             period = self.default_period
@@ -448,7 +448,7 @@ class WFMSkillsAgentPerformance(IncrementalStream):
                     config: dict = None,
                     bookmark_datetime: datetime = None,
                     is_parent: bool = False) -> Iterator:
-        if config.get('periods', {}).get(self.tap_stream_id):
+        if config.get('periods'):
             period = config.get('periods', {}).get(self.tap_stream_id)
         else:
             period = self.default_period
@@ -483,7 +483,7 @@ class WFMAgents(IncrementalStream):
                     config: dict = None,
                     bookmark_datetime: datetime = None,
                     is_parent: bool = False) -> Iterator:
-        if config.get('periods', {}).get(self.tap_stream_id):
+        if config.get('periods'):
             period = config.get('periods', {}).get(self.tap_stream_id)
         else:
             period = self.default_period
@@ -553,7 +553,7 @@ class WFMAgentsScorecards(IncrementalStream):
                     config: dict = None,
                     bookmark_datetime: datetime = None,
                     is_parent: bool = False) -> Iterator:
-        if config.get('periods', {}).get(self.tap_stream_id):
+        if config.get('periods'):
             period = config.get('periods', {}).get(self.tap_stream_id)
         else:
             period = self.default_period
