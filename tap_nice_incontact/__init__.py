@@ -1,3 +1,4 @@
+import json
 import singer
 from singer import utils
 
@@ -20,6 +21,14 @@ def main():
     # Parse command line arguments
     args = utils.parse_args(REQUIRED_CONFIG_KEYS)
 
+    config = args.config
+
+    # parse "periods" from config
+    periods = config.get("periods", {})
+    if periods and isinstance(periods, str):
+        periods = json.loads(periods)
+        config.update({"periods": periods})
+
     # If discover flag was passed, run discovery mode and dump output to stdout
     if args.discover:
         catalog = discover()
@@ -30,7 +39,7 @@ def main():
             catalog = args.catalog
         else:
             catalog = discover()
-        sync(args.config, args.state, catalog)
+        sync(config, args.state, catalog)
 
 
 if __name__ == "__main__":
