@@ -31,7 +31,10 @@ class NiceInContact5xxException(NiceInContactException):
 
 # pylint: disable=missing-class-docstring
 class NiceInContact4xxException(NiceInContactException):
-    pass
+    def __init__(self, status_header=None, response=None):
+        super().__init__(status_header)
+        self.status_header = status_header
+        self.response = response
 
 # pylint: disable=missing-class-docstring
 class NiceInContact429Exception(NiceInContactException):
@@ -168,13 +171,17 @@ class NiceInContactClient:
                                         params=params,
                                         data=data)
 
+        status_header = response.headers.get("icStatusDescription", response.status_code)
+
         # pylint: disable=no-else-raise
         if response.status_code >= 500:
             raise NiceInContact5xxException(response.text)
         elif response.status_code == 429:
             raise NiceInContact429Exception("rate limit exceeded", response)
         elif response.status_code >= 400:
-            raise NiceInContact4xxException(response.text)
+            # the 'icStatusDescription' header may contain an error message instead of the body
+            status_header = response.headers.get("icStatusDescription", response.status_code)
+            raise NiceInContact4xxException(status_header, response.text)
 
         if response.status_code == 204:
             LOGGER.info(
