@@ -56,6 +56,8 @@ class BaseStream:
         :param config: The tap config file
         :return: A list of records
         """
+        if not self.parent:
+            raise NotImplementedError("Child classes of BaseStream need to set the parent class")
         # pylint: disable=not-callable
         parent = self.parent(self.client)
         return parent.get_records(config, is_parent=True)
@@ -80,17 +82,17 @@ class BaseStream:
         if period == 'days':
             for day in range(1, (end_date - start_date).days + 1):
                 new_end = start_date + timedelta(days=day)
-                date_list.append((new_start.isoformat(), new_end.isoformat()))
+                date_list.append((utils.strftime(new_start), utils.strftime(new_end)))
                 new_start = new_end
         elif period == 'hours':
             for hour in range(1, int((end_date - start_date) / timedelta(hours=1)) + 1):
                 new_end = (start_date + timedelta(hours=hour))
-                date_list.append((new_start.isoformat(), new_end.isoformat()))
+                date_list.append((utils.strftime(new_start), utils.strftime(new_end)))
                 new_start = new_end
         elif period == 'minutes':
             for minutes in range(5, int((end_date - start_date) / timedelta(minutes=1)) + 5, 5):
                 new_end = start_date + timedelta(minutes=minutes)
-                date_list.append((new_start.isoformat(), new_end.isoformat()))
+                date_list.append((utils.strftime(new_start), utils.strftime(new_end)))
                 new_start = new_end
 
         yield from date_list
@@ -107,7 +109,7 @@ class BaseStream:
         return bookmark_datetime
 
 
-# pylint: disable=abstract-method,useless-super-delegation
+# pylint: disable=abstract-method
 class IncrementalStream(BaseStream):
     """
     A child class of a base stream used to represent streams that use the
@@ -117,9 +119,6 @@ class IncrementalStream(BaseStream):
     """
     replication_method = 'INCREMENTAL'
     batched = False
-
-    def __init__(self, client):
-        super().__init__(client)
 
     def sync(self,
             state: dict,
@@ -167,7 +166,6 @@ class IncrementalStream(BaseStream):
         return state
 
 
-# pylint: disable=abstract-method,useless-super-delegation
 class FullTableStream(BaseStream):
     """
     A child class of a base stream used to represent streams that use the
@@ -176,9 +174,6 @@ class FullTableStream(BaseStream):
     :param client: The API client used extract records from the external source
     """
     replication_method = 'FULL_TABLE'
-
-    def __init__(self, client):
-        super().__init__(client)
 
     def sync(self,
             state: dict,
