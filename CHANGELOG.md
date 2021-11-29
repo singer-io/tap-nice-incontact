@@ -1,5 +1,6 @@
 # Changelog
-
+## 0.3.0
+  * changes add 401 specific exception, fix access_token logic and reset access_token on 401 exceptions [12](https://github.com/singer-io/tap-nice-incontact/pull/12)
 ## 0.2.0
   * changes date string format to use literal "Z" for UTC+00:00 offset due to API quirks [#10](https://github.com/singer-io/tap-nice-incontact/pull/10)
 
