@@ -36,6 +36,9 @@ class NiceInContact4xxException(NiceInContactException):
         self.status_header = status_header
         self.response = response
 
+class NiceInContact401Exception(NiceInContact4xxException):
+    pass
+
 # pylint: disable=missing-class-docstring
 class NiceInContact429Exception(NiceInContactException):
     def __init__(self, message=None, response=None):
@@ -67,7 +70,8 @@ class NiceInContactClient:
 
         self.access_token = None
         self.refresh_token = None
-        self.expires_at = None
+        self.access_expires_at = None
+        self.refresh_expires_at = None
 
         self.start_date = start_date
 
@@ -77,7 +81,7 @@ class NiceInContactClient:
 
         :param refresh_token: The refresh token from a previous request.
         """
-        if refresh_token and self.expires_at <= dt.utcnow():
+        if refresh_token and self.refresh_expires_at <= dt.utcnow():
             response = self.session.post(self.refresh_endpoint, json={"token": self.refresh_token})
 
             data = response.json()
@@ -87,29 +91,32 @@ class NiceInContactClient:
             self.refresh_token = data.get('refreshToken')
 
             # `refresh_endpoint` returns slightly different `expires_in` key
-            self.expires_at = dt.utcnow() + \
+            self.access_expires_at = dt.utcnow() + \
+                timedelta(seconds=int(data.get('tokenExpirationTimeSec')) - 10)
+            self.refresh_expires_at = dt.utcnow() + \
                 timedelta(seconds=int(data.get('refreshTokenExpirationTimeSec')) - 10)
-        else:
-            if self.access_token is None or self.expires_at <= dt.utcnow():
-                response = self.session.post(
-                    self.auth_endpoint,
-                    json={
-                        "accessKeyId": self.api_key,
-                        "accessKeySecret": self.api_secret
-                    })
+        elif self.access_token is None or self.access_expires_at >= dt.utcnow():
+            response = self.session.post(
+                self.auth_endpoint,
+                json={
+                    "accessKeyId": self.api_key,
+                    "accessKeySecret": self.api_secret
+                })
 
-                if response.status_code != 200:
-                    raise NiceInContactException(
-                        'Non-200 response fetching NICE inContact access token'
-                        )
+            if response.status_code != 200:
+                raise NiceInContactException(
+                    'Non-200 response fetching NICE inContact access token'
+                    )
 
-                data = response.json()
+            data = response.json()
 
-                self.access_token = data.get('access_token')
-                self.refresh_token = data.get('refresh_token')
+            self.access_token = data.get('access_token')
+            self.refresh_token = data.get('refresh_token')
 
-                self.expires_at = dt.utcnow() + \
-                    timedelta(seconds=int(data.get('expires_in')) - 10)
+            self.access_expires_at = dt.utcnow() + \
+                timedelta(seconds=int(data.get('expires_in')) - 10)
+            self.refresh_expires_at = dt.utcnow() + \
+                timedelta(seconds=int(data.get('expires_in')) - 10)
 
     def _get_standard_headers(self):
         return {
@@ -120,6 +127,7 @@ class NiceInContactClient:
     @backoff.on_exception(backoff.expo,
                         (NiceInContact5xxException,
                         NiceInContact4xxException,
+                        NiceInContact401Exception,
                         requests.ConnectionError),
                         max_tries=MAX_RETRIES,
                         factor=2,
@@ -178,6 +186,12 @@ class NiceInContactClient:
             raise NiceInContact5xxException(response.text)
         elif response.status_code == 429:
             raise NiceInContact429Exception("rate limit exceeded", response)
+        elif response.status_code == 401:
+            # reseting `access_token` to reauthorize on retry
+            self.access_token = None
+            raise NiceInContact401Exception(
+                "API returned a 401 - Unauthorized, confirm credentials are valid.",
+                response.status_code)
         elif response.status_code >= 400:
             # the 'icStatusDescription' header may contain an error message instead of the body
             status_header = response.headers.get("icStatusDescription", response.status_code)
