@@ -10,8 +10,8 @@ LOGGER = get_logger()
 API_AUTH_DOMAIN = 'na1'
 API_AUTH_URI = 'https://{}.nice-incontact.com/authentication/v1/token/access-key'
 API_REFRESH_URI = 'https://{}.nice-incontact.com/public/user/refresh'
-API_BASE_URI = 'https://api-{}.nice-incontact.com/inContactAPI/services/v{}'
-API_VERSION = '21.0'
+API_BASE_URI = 'https://api-{}.niceincontact.com/inContactAPI/services/v{}'
+API_VERSION = '23.0'
 MAX_RETRIES = 5
 
 def log_backoff_attempt(details):
