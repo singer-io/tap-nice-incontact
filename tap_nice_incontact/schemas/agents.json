@@ -1,0 +1,737 @@
+{
+    "type": [
+      "null",
+      "object"
+    ],
+    "additionalProperties": false,
+    "properties": {
+        "agentId": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "userName": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "firstName": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "middleName": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "lastName": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "userId": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "emailAddress": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "isActive": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "teamId": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "teamName": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "reportToId": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "reportToName": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "isSupervisor": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "lastLogin": {
+            "type": [
+                "null",
+                "string"
+            ],
+            "format": "date-time"
+        },
+        "lastUpdated": {
+            "type": [
+                "null",
+                "string"
+            ],
+            "format": "date-time"
+        },
+        "location": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "custom1": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "custom2": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "custom3": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "custom4": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "custom5": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "internalId": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "profileId": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "profileName": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "timeZone": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "country": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "countryName": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "state": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "city": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "chatRefusalTimeout": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "phoneRefusalTimeout": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "workItemRefusalTimeout": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "defaultDialingPattern": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "defaultDialingPatternName": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "useTeamMaxConcurrentChats": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "maxConcurrentChats": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "notes": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "createDate": {
+            "type": [
+                "null",
+                "string"
+            ],
+            "format": "date-time"
+        },
+        "inactiveDate": {
+            "type": [
+                "null",
+                "string"
+            ],
+            "format": "date-time"
+        },
+        "hireDate": {
+            "type": [
+                "null",
+                "string"
+            ],
+            "format": "date-time"
+        },
+        "terminationDate": {
+            "type": [
+                "null",
+                "string"
+            ],
+            "format": "date-time"
+        },
+        "hourlyCost": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "rehireStatus": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "employmentType": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "employmentTypeName": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "referral": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "atHome": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "hiringSource": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "ntLoginName": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "scheduleNotification": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "federatedId": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "useTeamEmailAutoParkingLimit": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "maxEmailAutoParkingLimit": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "sipUser": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "systemUser": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "systemDomain": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "crmUserName": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "useAgentTimeZone": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "timeDisplayFormat": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "sendEmailNotifications": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "apiKey": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "telephone1": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "telephone2": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "userType": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "isWhatIfAgent": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "timeZoneOffset": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "requestContact": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "chatThreshold": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "useTeamChatThreshold": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "emailThreshold": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "useTeamEmailThreshold": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "workItemThreshold": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "useTeamWorkItemThreshold": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "contactAutoFocus": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "useTeamContactAutoFocus": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "useTeamRequestContact": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "voiceThreshold": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "useTeamVoiceThreshold": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "recordingNumbers": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "number": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "subject": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "issuer": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "isOpenIdProfileComplete": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "teamUuid": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "maxPreview": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "deliveryMode": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "totalContactCount": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "useTeamDeliveryModeSettings": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "emailRefusalTimeout": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "voicemailRefusalTimeout": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "smsRefusalTimeout": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "isBillable": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "agentVoiceThreshold": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "agentChatThreshold": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "agentEmailThreshold": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "agentWorkItemThreshold": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "agentDeliveryMode": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "agentTotalContactCount": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "agentContactAutoFocus": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "agentRequestContact": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "agentMaxVersion": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "customerCard": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "locked": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "userNameDomain": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "combinedUserNameDomain": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "rowNumber": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "SmsThreshold": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "UseTeamsmsThreshold": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "LoginAuthenticatorId": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "DigitalThreshold": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "UseTeamDigitalThreshold": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "agentPhoneTimeout": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "agentPhoneTimeoutSeconds": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "digitalRefusalTimeout": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "integratedSoftphoneWebRtcUrls": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "urlName": {
+                        "type": "string"
+                    },
+                    "weight": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "address1": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "address2": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "zipCode": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "noFixedAddress": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        }
+
+    }
+  }
