@@ -201,6 +201,45 @@ class FullTableStream(BaseStream):
         return state
 
 
+class Agents(IncrementalStream):
+    """
+    Retrieve agents updated since the bookmark time
+
+    Docs: https://developer.niceincontact.com/API/AdminAPI#/Agents/get-agents
+    """
+    tap_stream_id = 'agents'
+    key_properties = ['agentId']
+    path = 'agents'
+    replication_key = 'lastUpdated'
+    valid_replication_keys = ['lastUpdated']
+
+    data_key = 'agents'
+
+    def get_records(self,
+                    config: dict = None,
+                    bookmark_datetime: datetime = None,
+                    is_parent: bool = False) -> Iterator[list]:
+        bookmark_datetime = self.check_start_date(bookmark_datetime, 30)
+        records = True
+        skip = 0
+
+        # API is limited to 10K records per response, use skip param to get all records
+        while records:
+            params = {
+                "updatedSince": bookmark_datetime.isoformat(),
+                "skip": skip
+            }
+
+            response = self.client.get(self.path, params=params)
+
+            if not response:
+                records = False
+            else:
+                skip += len(response.get(self.data_key))
+
+                yield from response.get(self.data_key)
+
+
 class ContactsCompleted(IncrementalStream):
     """
     Retrieve completed contacts since `bookmark_datetime`
@@ -571,6 +610,7 @@ class WFMAgentsScorecards(IncrementalStream):
 
 
 STREAMS = {
+    'agents': Agents,
     'contacts_completed': ContactsCompleted,
     'skills_summary': SkillsSummary,
     'skills_sla_summary': SkillsSLASummary,
