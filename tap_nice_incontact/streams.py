@@ -201,7 +201,7 @@ class FullTableStream(BaseStream):
         return state
 
 
-class Agents(IncrementalStream):
+class Agents(FullTableStream):
     """
     Retrieve agents updated since the bookmark time
 
@@ -210,30 +210,25 @@ class Agents(IncrementalStream):
     tap_stream_id = 'agents'
     key_properties = ['agentId']
     path = 'agents'
-    replication_key = 'lastUpdated'
-    valid_replication_keys = ['lastUpdated']
-
     data_key = 'agents'
 
     def get_records(self,
                     config: dict = None,
-                    bookmark_datetime: datetime = None,
                     is_parent: bool = False) -> Iterator[list]:
-        bookmark_datetime = self.check_start_date(bookmark_datetime, 30)
-        records = True
+        # bookmark_datetime = self.check_start_date(bookmark_datetime, 30)
+        has_more_records = True
         skip = 0
 
         # API is limited to 10K records per response, use skip param to get all records
-        while records:
+        while has_more_records:
             params = {
-                "updatedSince": bookmark_datetime.isoformat(),
                 "skip": skip
             }
 
             response = self.client.get(self.path, params=params)
 
             if not response:
-                records = False
+                has_more_records = False
             else:
                 skip += len(response.get(self.data_key))
 
