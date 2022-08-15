@@ -107,3 +107,4 @@ state.json
 
 # tap/target configs
 *config.json
+*catalog.json
