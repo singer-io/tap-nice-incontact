@@ -1,4 +1,6 @@
 import datetime
+import requests
+import csv
 
 from datetime import timedelta
 from typing import Iterator
@@ -604,6 +606,151 @@ class WFMAgentsScorecards(IncrementalStream):
                         for rec in results.get(self.data_key))
 
 
+class DataExtractionStream(IncrementalStream):
+    """
+    Base class for streams pulling data via the Data Extraction API endpoints
+    Docs: https://help.nice-incontact.com/content/recording/dataextractionapi.htm
+    :param client: The API client used extract records from the external source
+    """
+    replication_method = 'INCREMENTAL'
+
+    # amount of time to delay before polling again
+    poll_delay = 5
+    # number of seconds before timing out
+    poll_timeout = 300
+
+    path = '/data-extraction/v1/jobs'
+
+    def get_status_uri(self, job_id):
+        return f'{self.path}/{job_id}'
+
+    def download_csv(self, csv_uri):
+        rows = []
+        with requests.get(CSV_URL, stream=True) as r:
+            lines = (line.decode('utf-8') for line in r.iter_lines())
+            for row in csv.DictReader(lines):
+                rows.append(row)
+        return rows
+
+    def create_job(self, start_date, end_date):
+        """ Create a new job in the data extraction API """
+        params = {
+            "entityName": self.entityName,
+            "startDate": start_date,
+            "endDate": end_date
+        }
+        results = self.client.get(self.path, params=params)
+        return results.json()
+
+    def fetch_data_export(self, start_date, end_date):
+
+        job = self.create_job(start_date, end_date)
+
+        job_status = None
+        ready = False
+        poll_attempt = 0
+
+        start_time = datetime.datetime.utcnow()
+
+        while not ready:
+            if (datetime.datetime.utcnow() - start_time).total_seconds() > self.poll_timeout:
+                raise Exception("data extraction job status timeout")
+
+            job_status = self.get_job_status(job['jobStatus'])
+            print(job_status)
+
+            if job_status['status'] == 'SUCCEEDED':
+                ready = True
+            elif job_status['status'] == 'RUNNING':
+                time.sleep(self.poll_delay)
+            else:
+                raise Exception("data extraction job failure", job_status)
+
+        records = self.download_csv(job_status['result']['url'])
+        print(records)
+
+   def sync(self,
+            state: dict,
+            stream_schema: dict,
+            stream_metadata: dict,
+            config: dict,
+            transformer: Transformer) -> dict:
+        """
+        The sync logic for an incremental stream.
+
+        :param state: A dictionary representing singer state
+        :param stream_schema: A dictionary containing the stream schema
+        :param stream_metadata: A dictionnary containing stream metadata
+        :param config: A dictionary containing tap config data
+        :param transformer: A singer Transformer object
+        :return: State data in the form of a dictionary
+        """
+        start_date = singer.get_bookmark(state,
+                                        self.tap_stream_id,
+                                        self.replication_key,
+                                        config['start_date'])
+        bookmark_datetime = singer.utils.strptime_to_utc(start_date)
+        max_datetime = bookmark_datetime
+
+        with metrics.record_counter(self.tap_stream_id) as counter:
+            for record in self.get_records(config, bookmark_datetime):
+                if self.convert_data_types:
+                    record = convert_data_types(record, stream_schema)
+
+                transformed_record = transformer.transform(record, stream_schema, stream_metadata)
+                # pylint: disable=line-too-long
+                record_datetime = singer.utils.strptime_to_utc(transformed_record[self.replication_key])
+                if record_datetime >= bookmark_datetime:
+                    singer.write_record(self.tap_stream_id, transformed_record)
+                    counter.increment()
+                    max_datetime = max(record_datetime, bookmark_datetime)
+
+            bookmark_date = singer.utils.strftime(max_datetime)
+
+        state = singer.write_bookmark(state,
+                                    self.tap_stream_id,
+                                    self.replication_key,
+                                    bookmark_date)
+        singer.write_state(state)
+        return state
+
+    def get_records(self,
+                    config: dict = None,
+                    bookmark_datetime: datetime = None,
+                    is_parent: bool = False) -> Iterator:
+
+        if config.get('periods'):
+            period = config.get('periods', {}).get(self.tap_stream_id)
+        else:
+            period = self.default_period
+
+        for start, end in self.generate_date_range(bookmark_datetime, period=period):
+            params = {
+                "startDate": start,
+                "endDate": end
+            }
+
+            results = self.client.get(self.path, params=params)
+
+            # skip over date-range periods that don't return data (204)
+            if not results:
+                continue
+
+
+class QMWorkflows(IncrementalStream):
+    """
+    Retrieve QM Workflow via the data extraction api.
+
+    Docs: https://developer.niceincontact.com/API/ReportingAPI#/WFM%20Data/wfmAgentScorecard
+    """
+    tap_stream_id = 'qm_workflows'
+
+    # the QM workflow entity name for the POST job is:
+    entity_name = 'qm-workflows'
+
+    replication_key = 'lastUpdated'
+
+
 STREAMS = {
     'agents': Agents,
     'contacts_completed': ContactsCompleted,
@@ -615,5 +762,6 @@ STREAMS = {
     'wfm_skills_agent_performance': WFMSkillsAgentPerformance,
     'wfm_agents': WFMAgents,
     'wfm_agents_schedule_adherence': WFMAgentsScheduleAdherence,
-    'wfm_agents_scorecards': WFMAgentsScorecards
+    'wfm_agents_scorecards': WFMAgentsScorecards,
+    'qm_workflows': QMWorkflows
 }
