@@ -14,13 +14,13 @@
     "abandonSeconds": {
       "type": [
         "null",
-        "integer"
+        "number"
       ]
     },
     "ACWSeconds": {
       "type": [
         "null",
-        "integer"
+        "number"
       ]
     },
     "agentId": {
@@ -32,7 +32,7 @@
     "agentSeconds": {
       "type": [
         "null",
-        "integer"
+        "number"
       ]
     },
     "callbackTime": {
@@ -56,7 +56,7 @@
     "confSeconds": {
       "type": [
         "null",
-        "integer"
+        "number"
       ]
     },
     "contactId": {
@@ -113,13 +113,13 @@
     "holdSeconds": {
       "type": [
         "null",
-        "integer"
+        "number"
       ]
     },
     "inQueueSeconds": {
       "type": [
         "null",
-        "integer"
+        "number"
       ]
     },
     "isLogged": {
@@ -210,13 +210,13 @@
     "postQueueSeconds": {
       "type": [
         "null",
-        "integer"
+        "number"
       ]
     },
     "preQueueSeconds": {
       "type": [
         "null",
-        "integer"
+        "number"
       ]
     },
     "primaryDispositionId": {
@@ -241,7 +241,7 @@
     "releaseSeconds": {
       "type": [
         "null",
-        "integer"
+        "number"
       ]
     },
     "routingTime": {
@@ -295,7 +295,7 @@
     "totalDurationSeconds": {
       "type": [
         "null",
-        "integer"
+        "number"
       ]
     },
     "transferIndicatorId": {
