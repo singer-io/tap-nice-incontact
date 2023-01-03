@@ -1,0 +1,133 @@
+{
+  "type": ["null", "object"],
+  "additionalProperties": false,
+  "properties": {
+    "tenantName": {
+      "type": ["null", "string"]
+    },
+    "agentId": {
+      "type": ["null", "string"]
+    },
+    "type": {
+      "type": ["null", "string"]
+    },
+    "evaluationFlowTrigger": {
+      "type": ["null", "string"]
+    },
+    "workflowStatus": {
+      "type": ["null", "string"]
+    },
+    "autoAcknowledged": {
+      "type": ["null", "string"]
+    },
+    "workflowState": {
+      "type": ["null", "string"]
+    },
+    "workflowId": {
+      "type": ["null", "string"]
+    },
+    "planName": {
+      "type": ["null", "string"]
+    },
+    "formName": {
+      "type": ["null", "string"]
+    },
+    "formVersion": {
+      "type": ["null", "string"]
+    },
+    "startDate": {
+      "type": ["null", "string"],
+      "format": "date-time"
+    },
+    "submissionDate": {
+      "type": ["null", "string"],
+      "format": "date-time"
+    },
+    "lastUpdated": {
+      "type": ["null", "string"],
+      "format": "date-time"
+    },
+    "scorePercentage": {
+      "type": ["null", "string"]
+    },
+    "score": {
+      "type": ["null", "string"]
+    },
+    "maximumPossibleScore": {
+      "type": ["null", "string"]
+    },
+    "rank": {
+      "type": ["null", "string"]
+    },
+    "failedCriticalQuestion": {
+      "type": ["null", "string"]
+    },
+    "userReviewComments": {
+      "type": ["null", "string"]
+    },
+    "disputeResolverComments": {
+      "type": ["null", "string"]
+    },
+    "segmentId": {
+      "type": ["null", "string"]
+    },
+    "acdId": {
+      "type": ["null", "string"]
+    },
+    "interactionType": {
+      "type": ["null", "string"]
+    },
+    "interactionStartDate": {
+      "type": ["null", "string"],
+      "format": "date-time"
+    },
+    "interactionEndDate": {
+      "type": ["null", "string"],
+      "format": "date-time"
+    },
+    "interactionDirection": {
+      "type": ["null", "string"]
+    },
+    "teamId": {
+      "type": ["null", "string"]
+    },
+    "teamName": {
+      "type": ["null", "string"]
+    },
+    "phoneNumber": {
+      "type": ["null", "string"]
+    },
+    "firstnameEva": {
+      "type": ["null", "string"]
+    },
+    "lastnameEva": {
+      "type": ["null", "string"]
+    },
+    "firstnameAgent": {
+      "type": ["null", "string"]
+    },
+    "lastnameAgent": {
+      "type": ["null", "string"]
+    },
+    "firstnameDisp": {
+      "type": ["null", "string"]
+    },
+    "lastnameDisp": {
+      "type": ["null", "string"]
+    },
+    "firstnameAssigner": {
+      "type": ["null", "string"]
+    },
+    "lastnameAssigner": {
+      "type": ["null", "string"]
+    },
+    "jobStartDate": {
+      "type": ["null", "string"],
+      "format": "date-time"
+    },
+    "jobEndDate": {
+      "type": ["null", "string"],
+      "format": "date-time"
+    }
+  }
+}

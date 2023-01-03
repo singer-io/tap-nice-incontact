@@ -1,6 +1,8 @@
+import time
 import datetime
 import requests
 import csv
+import json
 
 from datetime import timedelta
 from typing import Iterator
@@ -8,11 +10,15 @@ from typing import Iterator
 import singer
 from singer import Transformer, metrics, utils
 
-from tap_nice_incontact.client import NiceInContactClient
-from tap_nice_incontact.transform import convert_data_types, transform_iso8601_durations
+from tap_nice_incontact.client import NiceInContactClient, NiceInContact403Exception
+from tap_nice_incontact.transform import convert_data_types, transform_iso8601_durations, convert_data_keys
 
 
 LOGGER = singer.get_logger()
+
+DEBUG_JOBS = False
+# DEBUG_JOBS = True
+DEBUG_JOB_ID = '' # Add a job_id here to test just the fetching behavior
 
 class BaseStream:
     """
@@ -613,20 +619,22 @@ class DataExtractionStream(IncrementalStream):
     :param client: The API client used extract records from the external source
     """
     replication_method = 'INCREMENTAL'
+    entity_name = ''
 
     # amount of time to delay before polling again
     poll_delay = 5
     # number of seconds before timing out
     poll_timeout = 300
+    default_period = 'days'
 
-    path = '/data-extraction/v1/jobs'
+    path = 'jobs'
 
     def get_status_uri(self, job_id):
         return f'{self.path}/{job_id}'
 
     def download_csv(self, csv_uri):
         rows = []
-        with requests.get(CSV_URL, stream=True) as r:
+        with requests.get(csv_uri, stream=True) as r:
             lines = (line.decode('utf-8') for line in r.iter_lines())
             for row in csv.DictReader(lines):
                 rows.append(row)
@@ -634,17 +642,36 @@ class DataExtractionStream(IncrementalStream):
 
     def create_job(self, start_date, end_date):
         """ Create a new job in the data extraction API """
-        params = {
-            "entityName": self.entityName,
-            "startDate": start_date,
-            "endDate": end_date
+        if DEBUG_JOBS:
+            # Set a fixed job ID for debugging
+            return DEBUG_JOB_ID
+
+        data = {
+            "entityName": self.entity_name,
+            "startDate": start_date.strftime('%Y-%m-%d'),
+            "endDate": end_date.strftime('%Y-%m-%d'),
+            "version": "3",
         }
-        results = self.client.get(self.path, params=params)
-        return results.json()
+        job_id = self.client.post(
+            self.path,
+            data=json.dumps(data),
+            headers={'Content-Type': 'application/json'},
+            is_data_extraction=True
+        )
+        return job_id
+
+    def get_job_status(self, job_id):
+        job_path = f'{self.path}/{job_id}'
+        results = self.client.get(job_path, is_data_extraction=True)
+        if 'jobStatus' not in results:
+            return None
+        return results['jobStatus']
 
     def fetch_data_export(self, start_date, end_date):
 
-        job = self.create_job(start_date, end_date)
+        job_id = self.create_job(start_date, end_date)
+
+        print('Created job: ' + job_id)
 
         job_status = None
         ready = False
@@ -656,7 +683,9 @@ class DataExtractionStream(IncrementalStream):
             if (datetime.datetime.utcnow() - start_time).total_seconds() > self.poll_timeout:
                 raise Exception("data extraction job status timeout")
 
-            job_status = self.get_job_status(job['jobStatus'])
+            job_status = self.get_job_status(job_id)
+            if job_status is None:
+                raise Exception("data extraction job failure", job_id)
             print(job_status)
 
             if job_status['status'] == 'SUCCEEDED':
@@ -667,14 +696,14 @@ class DataExtractionStream(IncrementalStream):
                 raise Exception("data extraction job failure", job_status)
 
         records = self.download_csv(job_status['result']['url'])
-        print(records)
+        return records
 
-   def sync(self,
-            state: dict,
-            stream_schema: dict,
-            stream_metadata: dict,
-            config: dict,
-            transformer: Transformer) -> dict:
+    def sync(self,
+             state: dict,
+             stream_schema: dict,
+             stream_metadata: dict,
+             config: dict,
+             transformer: Transformer) -> dict:
         """
         The sync logic for an incremental stream.
 
@@ -685,18 +714,25 @@ class DataExtractionStream(IncrementalStream):
         :param transformer: A singer Transformer object
         :return: State data in the form of a dictionary
         """
+        
+
         start_date = singer.get_bookmark(state,
                                         self.tap_stream_id,
                                         self.replication_key,
                                         config['start_date'])
         bookmark_datetime = singer.utils.strptime_to_utc(start_date)
-        max_datetime = bookmark_datetime
-
+        max_datetime = bookmark_datetime        
+        # end_time = max_datetime + datetime.timedelta(days=1)
+        # records = self.fetch_data_export(max_datetime, end_time)
+        
         with metrics.record_counter(self.tap_stream_id) as counter:
+            # for record in records:
             for record in self.get_records(config, bookmark_datetime):
                 if self.convert_data_types:
                     record = convert_data_types(record, stream_schema)
 
+                # Convert data keys for CSV outputs
+                record = convert_data_keys(record)
                 transformed_record = transformer.transform(record, stream_schema, stream_metadata)
                 # pylint: disable=line-too-long
                 record_datetime = singer.utils.strptime_to_utc(transformed_record[self.replication_key])
@@ -718,37 +754,46 @@ class DataExtractionStream(IncrementalStream):
                     config: dict = None,
                     bookmark_datetime: datetime = None,
                     is_parent: bool = False) -> Iterator:
-
         if config.get('periods'):
             period = config.get('periods', {}).get(self.tap_stream_id)
         else:
             period = self.default_period
 
         for start, end in self.generate_date_range(bookmark_datetime, period=period):
-            params = {
-                "startDate": start,
-                "endDate": end
-            }
+            start_date = singer.utils.strptime_to_utc(start)
+            end_date = singer.utils.strptime_to_utc(end)
 
-            results = self.client.get(self.path, params=params)
+            try:
+                results = self.fetch_data_export(start_date, end_date)
+            except NiceInContact403Exception as e:
+                # We get a 403 excpetion if we are rate-limited by the data
+                # extraction API. Exclude these errors and wait until the
+                # next tap run to continue from the start datetime.
+                break
 
-            # skip over date-range periods that don't return data (204)
             if not results:
+                # skip over date-range periods that don't return data (204)
                 continue
+            else:
+                yield from (dict(rec, **{"Job Start Date": start, "Job End Date": end})
+                            for rec in results)
 
 
-class QMWorkflows(IncrementalStream):
+class QMWorkflows(DataExtractionStream):
     """
     Retrieve QM Workflow via the data extraction api.
 
-    Docs: https://developer.niceincontact.com/API/ReportingAPI#/WFM%20Data/wfmAgentScorecard
+    Docs: https://help.nice-incontact.com/content/recording/dataextractionapi.htm
     """
     tap_stream_id = 'qm_workflows'
-
     # the QM workflow entity name for the POST job is:
     entity_name = 'qm-workflows'
-
-    replication_key = 'lastUpdated'
+    key_properties = ['lastUpdated', 'submissionDate', 'workflowId']
+    replication_key = 'jobEndDate'
+    valid_replication_keys = ['jobEndDate', 'lastUpdated', 'submissionDate']
+    data_key = 'qmWorkflows'
+    convert_data_types = False
+    default_period = 'days'
 
 
 STREAMS = {

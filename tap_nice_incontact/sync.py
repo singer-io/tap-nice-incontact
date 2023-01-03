@@ -13,7 +13,8 @@ def sync(config, state, catalog):
         'api_key': config.get('api_key'),
         'api_secret': config.get('api_secret'),
         'api_cluster': config.get('api_cluster'),
-        'api_version': config.get('api_version'),
+        'api_incontact_version': config.get('api_incontact_version'),
+        'api_data_extraction_version': config.get('api_data_extraction_version'),
         'auth_domain': config.get('auth_domain'),
         'user_agent': config.get('user_agent'),
         'start_date': config.get('start_date')
