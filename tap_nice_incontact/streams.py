@@ -670,8 +670,8 @@ class DataExtractionStream(IncrementalStream):
     def fetch_data_export(self, start_date, end_date):
 
         job_id = self.create_job(start_date, end_date)
-
-        print('Created job: ' + job_id)
+        
+        LOGGER.info(f'Created job: {job_id}'))
 
         job_status = None
         ready = False
@@ -686,7 +686,8 @@ class DataExtractionStream(IncrementalStream):
             job_status = self.get_job_status(job_id)
             if job_status is None:
                 raise Exception("data extraction job failure", job_id)
-            print(job_status)
+
+            LOGGER.info(f'Job status ({job_id}): {job_status}')
 
             if job_status['status'] == 'SUCCEEDED':
                 ready = True
@@ -722,11 +723,8 @@ class DataExtractionStream(IncrementalStream):
                                         config['start_date'])
         bookmark_datetime = singer.utils.strptime_to_utc(start_date)
         max_datetime = bookmark_datetime        
-        # end_time = max_datetime + datetime.timedelta(days=1)
-        # records = self.fetch_data_export(max_datetime, end_time)
         
         with metrics.record_counter(self.tap_stream_id) as counter:
-            # for record in records:
             for record in self.get_records(config, bookmark_datetime):
                 if self.convert_data_types:
                     record = convert_data_types(record, stream_schema)
@@ -766,7 +764,7 @@ class DataExtractionStream(IncrementalStream):
             try:
                 results = self.fetch_data_export(start_date, end_date)
             except NiceInContact403Exception as e:
-                # We get a 403 excpetion if we are rate-limited by the data
+                # We get a 403 exception if we are rate-limited by the data
                 # extraction API. Exclude these errors and wait until the
                 # next tap run to continue from the start datetime.
                 break
