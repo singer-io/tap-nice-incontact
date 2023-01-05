@@ -10,10 +10,15 @@ LOGGER = get_logger()
 API_AUTH_DOMAIN = 'na1'
 API_AUTH_URI = 'https://{}.nice-incontact.com/authentication/v1/token/access-key'
 API_REFRESH_URI = 'https://{}.nice-incontact.com/public/user/refresh'
+
+
 API_INCONTACT_URI = 'https://api-{}.niceincontact.com/inContactAPI/services/v{}'
-API_DATA_EXTRACTION_URI = 'https://{}.nice-incontact.com/data-extraction/v{}'
 API_INCONTACT_VERSION = '23.0'
+
+# https://developer.niceincontact.com/API/DataExtractionAPI#/ExtractingData/getJobStatus
+API_DATA_EXTRACTION_URI = 'https://{}.nice-incontact.com/data-extraction/v{}'
 API_DATA_EXTRACTION_VERSION = '1'
+
 MAX_RETRIES = 5
 
 def log_backoff_attempt(details):
