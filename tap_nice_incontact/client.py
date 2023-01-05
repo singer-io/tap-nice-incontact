@@ -191,13 +191,19 @@ class NiceInContactClient:
                 method.upper(),
                 data
             )
-        else:
+        elif params:
             LOGGER.info(
                 "%s - Making %s request to endpoint %s, with params %s",
                 full_url,
                 method.upper(),
                 endpoint,
                 params,
+            )
+        else:
+            LOGGER.info(
+                "%s - Making %s request",
+                full_url,
+                method.upper()
             )
 
         self._ensure_access_token(self.refresh_token)

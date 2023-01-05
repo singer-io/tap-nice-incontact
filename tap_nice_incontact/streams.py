@@ -729,11 +729,12 @@ class DataExtractionStream(IncrementalStream):
         
         with metrics.record_counter(self.tap_stream_id) as counter:
             for record in self.get_records(config, bookmark_datetime):
+                # Convert data keys for CSV outputs to the correct field format
+                record = convert_data_keys(record)
+
                 if self.convert_data_types:
                     record = convert_data_types(record, stream_schema)
 
-                # Convert data keys for CSV outputs
-                record = convert_data_keys(record)
                 transformed_record = transformer.transform(record, stream_schema, stream_metadata)
                 # pylint: disable=line-too-long
                 record_datetime = singer.utils.strptime_to_utc(transformed_record[self.replication_key])
