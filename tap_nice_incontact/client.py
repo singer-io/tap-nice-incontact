@@ -17,8 +17,16 @@ API_DATA_EXTRACTION_VERSION = '1'
 MAX_RETRIES = 5
 
 def log_backoff_attempt(details):
+    method = 'GET'
+    url = ''
+    args = details.get("args")
+    if args:
+        method = args[1]
+        url = args[2]
     LOGGER.info(
-        "Connection error detected, triggering backoff: %d try",
+        "Connection error detected for %s to /%s, triggering backoff: %d try",
+        method,
+        url,
         details.get("tries")
         )
 
@@ -139,6 +147,7 @@ class NiceInContactClient:
     @backoff.on_exception(backoff.expo,
                         (NiceInContact5xxException,
                         NiceInContact4xxException,
+                        NiceInContact403Exception,
                         NiceInContact401Exception,
                         requests.ConnectionError),
                         max_tries=MAX_RETRIES,
@@ -170,13 +179,21 @@ class NiceInContactClient:
         else:
             full_url = endpoint
 
-        LOGGER.info(
-            "%s - Making request to %s endpoint %s, with params %s",
-            full_url,
-            method.upper(),
-            endpoint,
-            params,
-        )
+        if method == 'POST':
+            LOGGER.info(
+                "%s - Making %s request with data %s",
+                full_url,
+                method.upper(),
+                data
+            )
+        else:
+            LOGGER.info(
+                "%s - Making %s request to endpoint %s, with params %s",
+                full_url,
+                method.upper(),
+                endpoint,
+                params,
+            )
 
         self._ensure_access_token(self.refresh_token)
 

@@ -10,15 +10,12 @@ from typing import Iterator
 import singer
 from singer import Transformer, metrics, utils
 
-from tap_nice_incontact.client import NiceInContactClient, NiceInContact403Exception
+from tap_nice_incontact.client import NiceInContactClient, NiceInContact403Exception, NiceInContact5xxException
 from tap_nice_incontact.transform import convert_data_types, transform_iso8601_durations, convert_data_keys
 
 
 LOGGER = singer.get_logger()
 
-DEBUG_JOBS = False
-# DEBUG_JOBS = True
-DEBUG_JOB_ID = '' # Add a job_id here to test just the fetching behavior
 
 class BaseStream:
     """
@@ -620,6 +617,7 @@ class DataExtractionStream(IncrementalStream):
     """
     replication_method = 'INCREMENTAL'
     entity_name = ''
+    entity_version = 3
 
     # amount of time to delay before polling again
     poll_delay = 5
@@ -642,15 +640,11 @@ class DataExtractionStream(IncrementalStream):
 
     def create_job(self, start_date, end_date):
         """ Create a new job in the data extraction API """
-        if DEBUG_JOBS:
-            # Set a fixed job ID for debugging
-            return DEBUG_JOB_ID
-
         data = {
             "entityName": self.entity_name,
             "startDate": start_date.strftime('%Y-%m-%d'),
             "endDate": end_date.strftime('%Y-%m-%d'),
-            "version": "3",
+            "version": str(self.entity_version),
         }
         job_id = self.client.post(
             self.path,
@@ -660,20 +654,26 @@ class DataExtractionStream(IncrementalStream):
         )
         return job_id
 
-    def get_job_status(self, job_id):
+    def get_job_details(self, job_id):
         job_path = f'{self.path}/{job_id}'
         results = self.client.get(job_path, is_data_extraction=True)
         if 'jobStatus' not in results:
             return None
         return results['jobStatus']
 
-    def fetch_data_export(self, start_date, end_date):
+    def fetch_data_export(self, start_date, end_date, config: dict = None):
+
+        poll_delay = self.poll_delay
+        poll_timeout = self.poll_timeout
+        if config.get('poll_settings'):
+            poll_delay = config.get('poll_settings', {}).get('delay')
+            poll_timeout = config.get('poll_settings', {}).get('timeout')
 
         job_id = self.create_job(start_date, end_date)
         
-        LOGGER.info(f'Created job: {job_id}'))
+        LOGGER.info(f'Created job: {job_id}')
 
-        job_status = None
+        job_details = None
         ready = False
         poll_attempt = 0
 
@@ -683,20 +683,23 @@ class DataExtractionStream(IncrementalStream):
             if (datetime.datetime.utcnow() - start_time).total_seconds() > self.poll_timeout:
                 raise Exception("data extraction job status timeout")
 
-            job_status = self.get_job_status(job_id)
-            if job_status is None:
+            job_details = self.get_job_details(job_id)
+            if job_details is None:
                 raise Exception("data extraction job failure", job_id)
 
-            LOGGER.info(f'Job status ({job_id}): {job_status}')
+            status = job_details['status']
+            LOGGER.info(f'Job status ({job_id}): {status}')
 
-            if job_status['status'] == 'SUCCEEDED':
+            if status == 'SUCCEEDED':
                 ready = True
-            elif job_status['status'] == 'RUNNING':
+            elif status == 'RUNNING':
                 time.sleep(self.poll_delay)
             else:
-                raise Exception("data extraction job failure", job_status)
+                # Job status can also be: Failed, Cancelled, and Expired.
+                # https://help.nice-incontact.com/content/recording/dataextractionapi.htm
+                raise ValueError("Data extraction job failure", job_details)
 
-        records = self.download_csv(job_status['result']['url'])
+        records = self.download_csv(job_details['result']['url'])
         return records
 
     def sync(self,
@@ -762,11 +765,13 @@ class DataExtractionStream(IncrementalStream):
             end_date = singer.utils.strptime_to_utc(end)
 
             try:
-                results = self.fetch_data_export(start_date, end_date)
-            except NiceInContact403Exception as e:
+                results = self.fetch_data_export(start_date, end_date, config)
+            except (NiceInContact403Exception, NiceInContact5xxException, ValueError) as e:
                 # We get a 403 exception if we are rate-limited by the data
                 # extraction API. Exclude these errors and wait until the
                 # next tap run to continue from the start datetime.
+                #
+                # Otherwise break if we receive a server error or invalid job status.
                 break
 
             if not results:
@@ -781,16 +786,19 @@ class QMWorkflows(DataExtractionStream):
     """
     Retrieve QM Workflow via the data extraction api.
 
-    Docs: https://help.nice-incontact.com/content/recording/dataextractionapi.htm
+    Docs: https://help.nice-incontact.com/content/recording/dataextractionapi.htm#QMWorkflowEntityandCSVFile
     """
     tap_stream_id = 'qm_workflows'
-    # the QM workflow entity name for the POST job is:
+
+    # Entity information required to create a job
     entity_name = 'qm-workflows'
-    key_properties = ['lastUpdated', 'submissionDate', 'workflowId']
+    entity_version = 3
+    
+    key_properties = ['lastUpdated', 'startDate', 'workflowId']
     replication_key = 'jobEndDate'
-    valid_replication_keys = ['jobEndDate', 'lastUpdated', 'submissionDate']
+    valid_replication_keys = ['jobEndDate', 'lastUpdated', 'startDate']
     data_key = 'qmWorkflows'
-    convert_data_types = False
+    convert_data_types = True
     default_period = 'days'
 
 
