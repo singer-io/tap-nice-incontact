@@ -680,7 +680,7 @@ class DataExtractionStream(IncrementalStream):
         start_time = datetime.datetime.utcnow()
 
         while not ready:
-            if (datetime.datetime.utcnow() - start_time).total_seconds() > self.poll_timeout:
+            if (datetime.datetime.utcnow() - start_time).total_seconds() > poll_timeout:
                 raise Exception("data extraction job status timeout")
 
             job_details = self.get_job_details(job_id)
@@ -693,7 +693,7 @@ class DataExtractionStream(IncrementalStream):
             if status == 'SUCCEEDED':
                 ready = True
             elif status == 'RUNNING':
-                time.sleep(self.poll_delay)
+                time.sleep(poll_delay)
             else:
                 # Job status can also be: Failed, Cancelled, and Expired.
                 # https://help.nice-incontact.com/content/recording/dataextractionapi.htm
