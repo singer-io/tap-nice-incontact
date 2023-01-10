@@ -25,7 +25,7 @@ This tap:
 ## Bookmarking Strategy
 Most of the streams produce data for a "reporting period" which defaults to 1 hour. Some streams require a reporting period of 5 minutes. Each incremental stream class in `streams.py` has a `replication_key` that the tap uses to bookmark on.
 
-For data extraction streams, we use `jobEndDate` to bookmark which is the end_date of the data export period. Go here to read more about [Data Extraction APIs](https://help.nice-incontact.com/content/recording/dataextractionapi.htm).
+For data extraction streams, we use `jobEndDate` to bookmark which is the `endDate` of the data export period. Go here to read more about [Data Extraction APIs](https://help.nice-incontact.com/content/recording/dataextractionapi.htm).
 
 ## Authentication
 The tap is built around the NICE inContact UserHub authentication process. This [guide](https://developer.niceincontact.com/Documentation/UserHubGettingStarted) will show the steps required to get an `api_key` and `api_secret`.
