@@ -298,10 +298,10 @@ class SkillsSummary(IncrementalStream):
                     config: dict = None,
                     bookmark_datetime: datetime = None,
                     is_parent: bool = False) -> Iterator:
-        if config.get('periods'):
-            period = config.get('periods', {}).get(self.tap_stream_id)
-        else:
-            period = self.default_period
+        period = self.default_period
+        periods: dict = config.get('periods') or {} 
+        if periods and periods.get(self.tap_stream_id):
+            period = periods[self.tap_stream_id]
 
         for start, end in self.generate_date_range(bookmark_datetime, period=period):
             params = {
@@ -334,10 +334,10 @@ class SkillsSLASummary(IncrementalStream):
                     config: dict = None,
                     bookmark_datetime: datetime = None,
                     is_parent: bool = False) -> Iterator:
-        if config.get('periods'):
-            period = config.get('periods', {}).get(self.tap_stream_id)
-        else:
-            period = self.default_period
+        period = self.default_period
+        periods: dict = config.get('periods') or {} 
+        if periods and periods.get(self.tap_stream_id):
+            period = periods[self.tap_stream_id]
 
         for start, end in self.generate_date_range(bookmark_datetime, period=period):
             endpoint = self.path
@@ -386,10 +386,10 @@ class TeamsPerformanceTotal(IncrementalStream):
                     config: dict = None,
                     bookmark_datetime: datetime = None,
                     is_parent: bool = False) -> Iterator:
-        if config.get('periods'):
-            period = config.get('periods', {}).get(self.tap_stream_id)
-        else:
-            period = self.default_period
+        period = self.default_period
+        periods: dict = config.get('periods') or {} 
+        if periods and periods.get(self.tap_stream_id):
+            period = periods[self.tap_stream_id]    
 
         for start, end in self.generate_date_range(bookmark_datetime, period=period):
             params = {
@@ -482,10 +482,10 @@ class WFMSkillsAgentPerformance(IncrementalStream):
                     config: dict = None,
                     bookmark_datetime: datetime = None,
                     is_parent: bool = False) -> Iterator:
-        if config.get('periods'):
-            period = config.get('periods', {}).get(self.tap_stream_id)
-        else:
-            period = self.default_period
+        period = self.default_period
+        periods: dict = config.get('periods') or {} 
+        if periods and periods.get(self.tap_stream_id):
+            period = periods[self.tap_stream_id]
 
         for start, end in self.generate_date_range(bookmark_datetime, period=period):
             params = {
@@ -517,10 +517,10 @@ class WFMAgents(IncrementalStream):
                     config: dict = None,
                     bookmark_datetime: datetime = None,
                     is_parent: bool = False) -> Iterator:
-        if config.get('periods'):
-            period = config.get('periods', {}).get(self.tap_stream_id)
-        else:
-            period = self.default_period
+        period = self.default_period
+        periods: dict = config.get('periods') or {} 
+        if periods and periods.get(self.tap_stream_id):
+            period = periods[self.tap_stream_id]
 
         for start, end in self.generate_date_range(bookmark_datetime, period=period):
             params = {
@@ -587,10 +587,10 @@ class WFMAgentsScorecards(IncrementalStream):
                     config: dict = None,
                     bookmark_datetime: datetime = None,
                     is_parent: bool = False) -> Iterator:
-        if config.get('periods'):
-            period = config.get('periods', {}).get(self.tap_stream_id)
-        else:
-            period = self.default_period
+        period = self.default_period
+        periods: dict = config.get('periods') or {} 
+        if periods and periods.get(self.tap_stream_id):
+            period = periods[self.tap_stream_id]
 
         for start, end in self.generate_date_range(bookmark_datetime, period=period):
             params = {
@@ -756,10 +756,10 @@ class DataExtractionStream(IncrementalStream):
                     config: dict = None,
                     bookmark_datetime: datetime = None,
                     is_parent: bool = False) -> Iterator:
-        if config.get('periods'):
-            period = config.get('periods', {}).get(self.tap_stream_id)
-        else:
-            period = self.default_period
+        period = self.default_period
+        periods: dict = config.get('periods') or {} 
+        if periods and periods.get(self.tap_stream_id):
+            period = periods[self.tap_stream_id]
 
         for start, end in self.generate_date_range(bookmark_datetime, period=period):
             start_date = singer.utils.strptime_to_utc(start)
