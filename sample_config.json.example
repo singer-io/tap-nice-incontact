@@ -3,7 +3,8 @@
   "api_key": "<NICE inContact API key>",
   "api_secret": "<NICE inContact API secret>",
   "api_cluster": "<NICE inContact instance cluster>",
-  "api_version": "<NICE inContact API version>",
+  "api_incontact_version": "<NICE inContact API version>",
+  "api_data_extraction_version": "<NICE Data Extraction API version>",
   "user_agent": "tap-nice-incontact <<api_user_email@your_company.com>>",
   "periods": {
     "skills_summary": "days",

@@ -1,4 +1,8 @@
+import time
 import datetime
+import requests
+import csv
+import json
 
 from datetime import timedelta
 from typing import Iterator
@@ -6,11 +10,12 @@ from typing import Iterator
 import singer
 from singer import Transformer, metrics, utils
 
-from tap_nice_incontact.client import NiceInContactClient
-from tap_nice_incontact.transform import convert_data_types, transform_iso8601_durations
+from tap_nice_incontact.client import NiceInContactClient, NiceInContact403Exception, NiceInContact5xxException
+from tap_nice_incontact.transform import convert_data_types, transform_iso8601_durations, convert_data_keys
 
 
 LOGGER = singer.get_logger()
+
 
 class BaseStream:
     """
@@ -293,10 +298,10 @@ class SkillsSummary(IncrementalStream):
                     config: dict = None,
                     bookmark_datetime: datetime = None,
                     is_parent: bool = False) -> Iterator:
-        if config.get('periods'):
-            period = config.get('periods', {}).get(self.tap_stream_id)
-        else:
-            period = self.default_period
+        period = self.default_period
+        periods: dict = config.get('periods') or {} 
+        if periods and periods.get(self.tap_stream_id):
+            period = periods[self.tap_stream_id]
 
         for start, end in self.generate_date_range(bookmark_datetime, period=period):
             params = {
@@ -329,10 +334,10 @@ class SkillsSLASummary(IncrementalStream):
                     config: dict = None,
                     bookmark_datetime: datetime = None,
                     is_parent: bool = False) -> Iterator:
-        if config.get('periods'):
-            period = config.get('periods', {}).get(self.tap_stream_id)
-        else:
-            period = self.default_period
+        period = self.default_period
+        periods: dict = config.get('periods') or {} 
+        if periods and periods.get(self.tap_stream_id):
+            period = periods[self.tap_stream_id]
 
         for start, end in self.generate_date_range(bookmark_datetime, period=period):
             endpoint = self.path
@@ -381,10 +386,10 @@ class TeamsPerformanceTotal(IncrementalStream):
                     config: dict = None,
                     bookmark_datetime: datetime = None,
                     is_parent: bool = False) -> Iterator:
-        if config.get('periods'):
-            period = config.get('periods', {}).get(self.tap_stream_id)
-        else:
-            period = self.default_period
+        period = self.default_period
+        periods: dict = config.get('periods') or {} 
+        if periods and periods.get(self.tap_stream_id):
+            period = periods[self.tap_stream_id]    
 
         for start, end in self.generate_date_range(bookmark_datetime, period=period):
             params = {
@@ -477,10 +482,10 @@ class WFMSkillsAgentPerformance(IncrementalStream):
                     config: dict = None,
                     bookmark_datetime: datetime = None,
                     is_parent: bool = False) -> Iterator:
-        if config.get('periods'):
-            period = config.get('periods', {}).get(self.tap_stream_id)
-        else:
-            period = self.default_period
+        period = self.default_period
+        periods: dict = config.get('periods') or {} 
+        if periods and periods.get(self.tap_stream_id):
+            period = periods[self.tap_stream_id]
 
         for start, end in self.generate_date_range(bookmark_datetime, period=period):
             params = {
@@ -512,10 +517,10 @@ class WFMAgents(IncrementalStream):
                     config: dict = None,
                     bookmark_datetime: datetime = None,
                     is_parent: bool = False) -> Iterator:
-        if config.get('periods'):
-            period = config.get('periods', {}).get(self.tap_stream_id)
-        else:
-            period = self.default_period
+        period = self.default_period
+        periods: dict = config.get('periods') or {} 
+        if periods and periods.get(self.tap_stream_id):
+            period = periods[self.tap_stream_id]
 
         for start, end in self.generate_date_range(bookmark_datetime, period=period):
             params = {
@@ -582,10 +587,10 @@ class WFMAgentsScorecards(IncrementalStream):
                     config: dict = None,
                     bookmark_datetime: datetime = None,
                     is_parent: bool = False) -> Iterator:
-        if config.get('periods'):
-            period = config.get('periods', {}).get(self.tap_stream_id)
-        else:
-            period = self.default_period
+        period = self.default_period
+        periods: dict = config.get('periods') or {} 
+        if periods and periods.get(self.tap_stream_id):
+            period = periods[self.tap_stream_id]
 
         for start, end in self.generate_date_range(bookmark_datetime, period=period):
             params = {
@@ -604,6 +609,200 @@ class WFMAgentsScorecards(IncrementalStream):
                         for rec in results.get(self.data_key))
 
 
+class DataExtractionStream(IncrementalStream):
+    """
+    Base class for streams pulling data via the Data Extraction API endpoints
+    Docs: https://help.nice-incontact.com/content/recording/dataextractionapi.htm
+    :param client: The API client used extract records from the external source
+    """
+    replication_method = 'INCREMENTAL'
+    entity_name = ''
+    entity_version = 3
+
+    # amount of time to delay before polling again
+    poll_delay = 5
+    # number of seconds before timing out
+    poll_timeout = 300
+    default_period = 'days'
+
+    path = 'jobs'
+
+    def get_status_uri(self, job_id):
+        return f'{self.path}/{job_id}'
+
+    def download_csv(self, csv_uri):
+        rows = []
+        with requests.get(csv_uri, stream=True) as r:
+            lines = (line.decode('utf-8') for line in r.iter_lines())
+            for row in csv.DictReader(lines):
+                rows.append(row)
+        return rows
+
+    def create_job(self, start_date, end_date):
+        """ Create a new job in the data extraction API """
+        data = {
+            "entityName": self.entity_name,
+            "startDate": start_date.strftime('%Y-%m-%d'),
+            "endDate": end_date.strftime('%Y-%m-%d'),
+            "version": str(self.entity_version),
+        }
+        job_id = self.client.post(
+            self.path,
+            data=json.dumps(data),
+            headers={'Content-Type': 'application/json'},
+            is_data_extraction=True
+        )
+        return job_id
+
+    def get_job_details(self, job_id):
+        job_path = f'{self.path}/{job_id}'
+        results = self.client.get(job_path, is_data_extraction=True)
+        if 'jobStatus' not in results:
+            return None
+        return results['jobStatus']
+
+    def fetch_data_export(self, start_date, end_date, config: dict = None):
+
+        poll_delay = self.poll_delay
+        poll_timeout = self.poll_timeout
+        if config.get('poll_settings'):
+            poll_delay = config.get('poll_settings', {}).get('delay')
+            poll_timeout = config.get('poll_settings', {}).get('timeout')
+
+        job_id = self.create_job(start_date, end_date)
+        
+        LOGGER.info(f'Created job: {job_id}')
+
+        job_details = None
+        ready = False
+        poll_attempt = 0
+
+        start_time = datetime.datetime.utcnow()
+
+        while not ready:
+            if (datetime.datetime.utcnow() - start_time).total_seconds() > poll_timeout:
+                raise Exception("data extraction job status timeout")
+
+            job_details = self.get_job_details(job_id)
+            if job_details is None:
+                raise Exception("data extraction job failure", job_id)
+
+            status = job_details['status']
+            LOGGER.info(f'Job status ({job_id}): {status}')
+
+            if status == 'SUCCEEDED':
+                ready = True
+            elif status == 'RUNNING':
+                time.sleep(poll_delay)
+            else:
+                # Job status can also be: Failed, Cancelled, and Expired.
+                # https://help.nice-incontact.com/content/recording/dataextractionapi.htm
+                raise ValueError("Data extraction job failure", job_details)
+
+        records = self.download_csv(job_details['result']['url'])
+        return records
+
+    def sync(self,
+             state: dict,
+             stream_schema: dict,
+             stream_metadata: dict,
+             config: dict,
+             transformer: Transformer) -> dict:
+        """
+        The sync logic for an incremental stream.
+
+        :param state: A dictionary representing singer state
+        :param stream_schema: A dictionary containing the stream schema
+        :param stream_metadata: A dictionnary containing stream metadata
+        :param config: A dictionary containing tap config data
+        :param transformer: A singer Transformer object
+        :return: State data in the form of a dictionary
+        """
+        
+
+        start_date = singer.get_bookmark(state,
+                                        self.tap_stream_id,
+                                        self.replication_key,
+                                        config['start_date'])
+        bookmark_datetime = singer.utils.strptime_to_utc(start_date)
+        max_datetime = bookmark_datetime        
+        
+        with metrics.record_counter(self.tap_stream_id) as counter:
+            for record in self.get_records(config, bookmark_datetime):
+                # Convert data keys for CSV outputs to the correct field format
+                record = convert_data_keys(record)
+
+                if self.convert_data_types:
+                    record = convert_data_types(record, stream_schema)
+
+                transformed_record = transformer.transform(record, stream_schema, stream_metadata)
+                # pylint: disable=line-too-long
+                record_datetime = singer.utils.strptime_to_utc(transformed_record[self.replication_key])
+                if record_datetime >= bookmark_datetime:
+                    singer.write_record(self.tap_stream_id, transformed_record)
+                    counter.increment()
+                    max_datetime = max(record_datetime, bookmark_datetime)
+
+            bookmark_date = singer.utils.strftime(max_datetime)
+
+        state = singer.write_bookmark(state,
+                                    self.tap_stream_id,
+                                    self.replication_key,
+                                    bookmark_date)
+        singer.write_state(state)
+        return state
+
+    def get_records(self,
+                    config: dict = None,
+                    bookmark_datetime: datetime = None,
+                    is_parent: bool = False) -> Iterator:
+        period = self.default_period
+        periods: dict = config.get('periods') or {} 
+        if periods and periods.get(self.tap_stream_id):
+            period = periods[self.tap_stream_id]
+
+        for start, end in self.generate_date_range(bookmark_datetime, period=period):
+            start_date = singer.utils.strptime_to_utc(start)
+            end_date = singer.utils.strptime_to_utc(end)
+
+            try:
+                results = self.fetch_data_export(start_date, end_date, config)
+            except (NiceInContact403Exception, NiceInContact5xxException, ValueError) as e:
+                # We get a 403 exception if we are rate-limited by the data
+                # extraction API. Exclude these errors and wait until the
+                # next tap run to continue from the start datetime.
+                #
+                # Otherwise break if we receive a server error or invalid job status.
+                break
+
+            if not results:
+                # skip over date-range periods that don't return data (204)
+                continue
+            else:
+                yield from (dict(rec, **{"Job Start Date": start, "Job End Date": end})
+                            for rec in results)
+
+
+class QMWorkflows(DataExtractionStream):
+    """
+    Retrieve QM Workflow via the data extraction api.
+
+    Docs: https://help.nice-incontact.com/content/recording/dataextractionapi.htm#QMWorkflowEntityandCSVFile
+    """
+    tap_stream_id = 'qm_workflows'
+
+    # Entity information required to create a job
+    entity_name = 'qm-workflows'
+    entity_version = 3
+    
+    key_properties = ['lastUpdated', 'startDate', 'workflowId']
+    replication_key = 'jobEndDate'
+    valid_replication_keys = ['jobEndDate', 'lastUpdated', 'startDate']
+    data_key = 'qmWorkflows'
+    convert_data_types = True
+    default_period = 'days'
+
+
 STREAMS = {
     'agents': Agents,
     'contacts_completed': ContactsCompleted,
@@ -615,5 +814,6 @@ STREAMS = {
     'wfm_skills_agent_performance': WFMSkillsAgentPerformance,
     'wfm_agents': WFMAgents,
     'wfm_agents_schedule_adherence': WFMAgentsScheduleAdherence,
-    'wfm_agents_scorecards': WFMAgentsScorecards
+    'wfm_agents_scorecards': WFMAgentsScorecards,
+    'qm_workflows': QMWorkflows
 }

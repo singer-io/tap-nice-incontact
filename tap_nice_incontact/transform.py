@@ -1,3 +1,4 @@
+import re
 import json
 from isodate import parse_duration
 from isodate.isoerror import ISO8601Error
@@ -59,3 +60,31 @@ def transform_iso8601_durations(data: list) -> list:
         transformed_data.append(new_record)
 
     return transformed_data
+
+
+def convert_data_keys(data: dict) -> dict:
+    """
+    Function to transform CSV field names (ex. "Last Name")
+    to a more singer-compatible key ("lastName").
+    """
+    converted_data = {}
+
+    for field, value in data.items():
+        new_field = field.lower()
+        # Remove all parentheses and dashes
+        if '(' or ')' in field:
+            new_field = re.sub('[\(\)]', ' ', new_field)
+        if '- ' in field:
+            new_field = new_field.replace('-', ' ')
+        
+        field_segments = new_field.split(' ')
+        if len(field_segments) > 1:
+            new_field = field_segments[0]
+            for i in range(1, len(field_segments)):
+                segment = field_segments[i]
+                if len(segment) > 0:
+                    new_field += segment.capitalize()
+
+        converted_data.update({new_field: value})
+    
+    return converted_data

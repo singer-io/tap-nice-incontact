@@ -10,13 +10,28 @@ LOGGER = get_logger()
 API_AUTH_DOMAIN = 'na1'
 API_AUTH_URI = 'https://{}.nice-incontact.com/authentication/v1/token/access-key'
 API_REFRESH_URI = 'https://{}.nice-incontact.com/public/user/refresh'
-API_BASE_URI = 'https://api-{}.niceincontact.com/inContactAPI/services/v{}'
-API_VERSION = '23.0'
-MAX_RETRIES = 5
+
+
+API_INCONTACT_URI = 'https://api-{}.niceincontact.com/inContactAPI/services/v{}'
+API_INCONTACT_VERSION = '23.0'
+
+# https://developer.niceincontact.com/API/DataExtractionAPI#/
+API_DATA_EXTRACTION_URI = 'https://{}.nice-incontact.com/data-extraction/v{}'
+API_DATA_EXTRACTION_VERSION = '1'
+
+MAX_RETRIES = 9
 
 def log_backoff_attempt(details):
+    method = 'GET'
+    url = ''
+    args = details.get("args")
+    if args:
+        method = args[1]
+        url = args[2]
     LOGGER.info(
-        "Connection error detected, triggering backoff: %d try",
+        "Connection error detected for %s to /%s, triggering backoff: %d try",
+        method,
+        url,
         details.get("tries")
         )
 
@@ -39,6 +54,9 @@ class NiceInContact4xxException(NiceInContactException):
 class NiceInContact401Exception(NiceInContact4xxException):
     pass
 
+class NiceInContact403Exception(NiceInContact4xxException):
+    pass
+
 # pylint: disable=missing-class-docstring
 class NiceInContact429Exception(NiceInContactException):
     def __init__(self, message=None, response=None):
@@ -52,14 +70,21 @@ class NiceInContactClient:
                 api_key: str = None,
                 api_secret: str = None,
                 api_cluster: str = None,
-                api_version: str = None,
+                api_incontact_version: str = None,
+                api_data_extraction_version: str = None,
                 auth_domain: str = None,
                 user_agent: str = None,
                 start_date: str = None):
         self.api_key = api_key
         self.api_secret = api_secret
-        self.api_version = str(api_version) if api_version else API_VERSION
-        self.api_base_uri = API_BASE_URI.format(api_cluster, self.api_version)
+        # Format InContact URI
+        self.api_incontact_version = str(api_incontact_version) if api_incontact_version else API_INCONTACT_VERSION
+        self.api_incontact_base_uri = API_INCONTACT_URI.format(api_cluster, self.api_incontact_version)
+
+        # Format Data Extraction URI
+        self.api_data_extraction_version = str(api_data_extraction_version) if api_data_extraction_version else API_DATA_EXTRACTION_VERSION
+        self.api_data_extraction_base_uri = API_DATA_EXTRACTION_URI.format(api_cluster, self.api_data_extraction_version)
+
         self.user_agent = user_agent
 
         self.session = requests.Session()
@@ -127,6 +152,7 @@ class NiceInContactClient:
     @backoff.on_exception(backoff.expo,
                         (NiceInContact5xxException,
                         NiceInContact4xxException,
+                        NiceInContact403Exception,
                         NiceInContact401Exception,
                         requests.ConnectionError),
                         max_tries=MAX_RETRIES,
@@ -138,7 +164,8 @@ class NiceInContactClient:
                     paging: bool = False,
                     headers: dict = None,
                     params: dict = None,
-                    data: dict = None):
+                    data: dict = None,
+                    is_data_extraction: bool = False):
         """
         Internal NiceInContactClient method for making HTTP requests.
 
@@ -151,18 +178,33 @@ class NiceInContactClient:
         :param params: Any URI encoded query params required to make request.
         :param data: Any request body required to make request.
         """
+        base_uri = self.api_data_extraction_base_uri if is_data_extraction else self.api_incontact_base_uri
         if not paging:
-            full_url = f'{self.api_base_uri}/{endpoint}'
+            full_url = f'{base_uri}/{endpoint}'
         else:
             full_url = endpoint
 
-        LOGGER.info(
-            "%s - Making request to %s endpoint %s, with params %s",
-            full_url,
-            method.upper(),
-            endpoint,
-            params,
-        )
+        if method == 'POST':
+            LOGGER.info(
+                "%s - Making %s request with data %s",
+                full_url,
+                method.upper(),
+                data
+            )
+        elif params:
+            LOGGER.info(
+                "%s - Making %s request to endpoint %s, with params %s",
+                full_url,
+                method.upper(),
+                endpoint,
+                params,
+            )
+        else:
+            LOGGER.info(
+                "%s - Making %s request",
+                full_url,
+                method.upper()
+            )
 
         self._ensure_access_token(self.refresh_token)
 
@@ -192,6 +234,11 @@ class NiceInContactClient:
             raise NiceInContact401Exception(
                 "API returned a 401 - Unauthorized, confirm credentials are valid.",
                 response.status_code)
+        elif response.status_code == 403:
+            raise NiceInContact403Exception(
+                "API returned a 403 - Forbidden",
+                response.text
+            )
         elif response.status_code >= 400:
             # the 'icStatusDescription' header may contain an error message instead of the body
             status_header = response.headers.get("icStatusDescription", response.status_code)
@@ -208,8 +255,14 @@ class NiceInContactClient:
 
         return results
 
-    def get(self, endpoint, paging=False, headers=None, params=None):
+    def get(self, endpoint, paging=False, headers=None, params=None, is_data_extraction = False):
         """
         NiceInContactClient's primary external method for making GET requests.
         """
-        return self._make_request("GET", endpoint, paging, headers=headers, params=params)
+        return self._make_request("GET", endpoint, paging, headers=headers, params=params, is_data_extraction=is_data_extraction)
+
+    def post(self, endpoint, paging=False, headers=None, data=None, is_data_extraction = False):
+        """
+        NiceInContactClient's primary external method for making POST requests.
+        """
+        return self._make_request("POST", endpoint, paging, headers=headers, data=data, is_data_extraction=is_data_extraction)
