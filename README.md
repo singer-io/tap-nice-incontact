@@ -81,7 +81,7 @@ For `periods` the structure is as follows:
 
 ## Polling Behavior
 
-For [data extraction streams](https://help.nice-incontact.com/content/recording/dataextractionapi.htm), we need to poll the `/jobs/{JOB_ID}` endpoint to wait for the success state. You can change these settings in order to use different settings.
+For [data extraction streams](https://help.nice-incontact.com/content/recording/dataextractionapi.htm), we need to poll the `/jobs/{JOB_ID}` endpoint to wait for the success state. You can change these settings in order to adjust polling behavior.
 
 | stream | reporting period |
 | :----: | :--------------- | 
