@@ -18,16 +18,17 @@ This tap:
     - [WFM - Agents](https://developer.niceincontact.com/API/ReportingAPI#/WFM%20Data/wfmDataAgent)
     - [WFM - Agents - Schedule Adherence](https://developer.niceincontact.com/API/ReportingAPI#/WFM%20Data/wfmAdherenceStatistics)
     - [WFM - Agents - Scorecards](https://developer.niceincontact.com/API/ReportingAPI#/WFM%20Data/wfmAgentScorecard)
+    - [QM - Workflows](https://help.nice-incontact.com/content/recording/dataextractionapi.htm#QMWorkflowEntityandCSVFile)
 - Outputs the schema for each resource
 - Incrementally pulls data based on the input state
 
 ## Bookmarking Strategy
 Most of the streams produce data for a "reporting period" which defaults to 1 hour. Some streams require a reporting period of 5 minutes. Each incremental stream class in `streams.py` has a `replication_key` that the tap uses to bookmark on.
 
+For data extraction streams, we use `jobEndDate` to bookmark which is the end_date of the data export period. Go here to read more about [Data Extraction APIs](https://help.nice-incontact.com/content/recording/dataextractionapi.htm).
 
 ## Authentication
 The tap is built around the NICE inContact UserHub authentication process. This [guide](https://developer.niceincontact.com/Documentation/UserHubGettingStarted) will show the steps required to get an `api_key` and `api_secret`.
-
 
 ## Config
 
@@ -43,7 +44,8 @@ The tap accepts the following config items:
 | `api_data_extraction_version` | string | no | NICE Data Extraction API version. Default is  `"1"` |
 | `user_agent` | string | yes | Process and email for API logging purposes. Example: `tap-nice-incontact <api_user_email@your_company.com>` |
 | `auth_domain` | string | no | The NICE inContact auth domain/region to use. Default is `"na1"`. See [Authentication](#Authentication) for more. |
-| `periods` | object | no | stream specific reporting periods (see [below](#Reporting%20Periods)) |
+| `periods` | object | no | Stream specific reporting periods (see [below](#Reporting%20Periods)) |
+| `poll_settings` | object | no | Polling used for data extraction jobs (see [below](#Polling%20Behavior)) |
 
 
 Example config:
@@ -63,7 +65,8 @@ Example config:
     "teams_performance_total": "days",
     "wfm_skills_agent_performance": "days",
     "wfm_agents": "days",
-    "wfm_agents_scorecards": "days"
+    "wfm_agents_scorecards": "days",
+    "qm_workflows": "days"
   }
 }
 ```
@@ -76,6 +79,14 @@ For `periods` the structure is as follows:
 | :----: | :--------------- | 
 | `stream_name` | the tap supports 1 `days`, 1 `hours`, and 5 `minutes` |
 
+## Polling Behavior
+
+For [data extraction streams](https://help.nice-incontact.com/content/recording/dataextractionapi.htm), we need to poll the `/jobs/{JOB_ID}` endpoint to wait for the success state. You can change these settings in order to use different settings.
+
+| stream | reporting period |
+| :----: | :--------------- | 
+| `delay` | How long to wait between status requests, defaults to 5 seconds |
+| `timeout` | How long to wait for the status request, defaults to 300 seconds | 
 
 ## Quick Start
 1. Install
