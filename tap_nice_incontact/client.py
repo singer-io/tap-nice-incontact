@@ -19,7 +19,7 @@ API_INCONTACT_VERSION = '23.0'
 API_DATA_EXTRACTION_URI = 'https://{}.nice-incontact.com/data-extraction/v{}'
 API_DATA_EXTRACTION_VERSION = '1'
 
-MAX_RETRIES = 8
+MAX_RETRIES = 9
 
 def log_backoff_attempt(details):
     method = 'GET'
