@@ -1,0 +1,112 @@
+{
+  "type": ["null", "object"],
+  "additionalProperties": false,
+  "properties": {
+    "actualScore": {
+      "type": ["null", "number"]
+    },
+    "answer": {
+      "type": ["null", "string"]
+    },
+    "questionId": {
+      "type": ["null", "string"]
+    },
+    "questionTitle": {
+      "type": ["null", "string"]
+    },
+    "questionNumber": {
+      "type": ["null", "string"]
+    },
+    "options": {
+      "type": ["null", "string"]
+    },
+    "formId": {
+      "type": ["null", "string"]
+    },
+    "formName": {
+      "type": ["null", "string"]
+    },
+    "formVersion": {
+      "type": ["string"]
+    },
+    "evaluationScore%": {
+      "type": ["null", "number"]
+    },
+    "evaluationStartDate": {
+        "type": ["null", "string"],
+        "format": "date-time"
+    },
+    "evaluationSubmissionDate": {
+        "type": ["null", "string"],
+        "format": "date-time"
+    },
+    "workflowType": {
+      "type": ["null", "string"]
+    },
+    "sectionId": {
+      "type": ["null", "string"]
+    },
+    "sectionTitle": {
+      "type": ["null", "string"]
+    },
+    "sectionScore%": {
+      "type": ["null", "number"]
+    },
+    "maxScore": {
+      "type": ["null", "number"]
+    },
+    "agentId": {
+      "type": ["null", "string"]
+    },
+    "firstnameAgent": {
+      "type": ["null", "string"]
+    },
+    "lastnameAgent": {
+      "type": ["null", "string"]
+    },
+    "teamId": {
+      "type": ["null", "string"]
+    },
+    "teamName": {
+      "type": ["null", "string"]
+    },
+    "firstnameEva": {
+      "type": ["null", "string"]
+    },
+    "lastnameEva": {
+      "type": ["null", "string"]
+    },
+    "critical": {
+      "type": ["null", "boolean"]
+    },
+    "failedCriticalQuestion": {
+      "type": ["null", "boolean"]
+    },
+    "mandatory": {
+      "type": ["null", "boolean"]
+    },
+    "scorable": {
+      "type": ["null", "boolean"]
+    },
+    "questionType": {
+      "type": ["null", "string"]
+    },
+    "segmentId": {
+      "type": ["null", "string"]
+    },
+    "interactionStartDate": {
+        "type": ["null", "string"],
+        "format": "date-time"
+    },
+    "interactionEndDate": {
+        "type": ["null", "string"],
+        "format": "date-time"
+    },
+    "workflowinstanceId": {
+      "type": ["null", "string"]
+    },
+    "bankId": {
+      "type": ["null", "string"]
+    }
+  }
+}

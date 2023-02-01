@@ -299,7 +299,7 @@ class SkillsSummary(IncrementalStream):
                     bookmark_datetime: datetime = None,
                     is_parent: bool = False) -> Iterator:
         period = self.default_period
-        periods: dict = config.get('periods') or {} 
+        periods: dict = config.get('periods') or {}
         if periods and periods.get(self.tap_stream_id):
             period = periods[self.tap_stream_id]
 
@@ -335,7 +335,7 @@ class SkillsSLASummary(IncrementalStream):
                     bookmark_datetime: datetime = None,
                     is_parent: bool = False) -> Iterator:
         period = self.default_period
-        periods: dict = config.get('periods') or {} 
+        periods: dict = config.get('periods') or {}
         if periods and periods.get(self.tap_stream_id):
             period = periods[self.tap_stream_id]
 
@@ -387,9 +387,9 @@ class TeamsPerformanceTotal(IncrementalStream):
                     bookmark_datetime: datetime = None,
                     is_parent: bool = False) -> Iterator:
         period = self.default_period
-        periods: dict = config.get('periods') or {} 
+        periods: dict = config.get('periods') or {}
         if periods and periods.get(self.tap_stream_id):
-            period = periods[self.tap_stream_id]    
+            period = periods[self.tap_stream_id]
 
         for start, end in self.generate_date_range(bookmark_datetime, period=period):
             params = {
@@ -483,7 +483,7 @@ class WFMSkillsAgentPerformance(IncrementalStream):
                     bookmark_datetime: datetime = None,
                     is_parent: bool = False) -> Iterator:
         period = self.default_period
-        periods: dict = config.get('periods') or {} 
+        periods: dict = config.get('periods') or {}
         if periods and periods.get(self.tap_stream_id):
             period = periods[self.tap_stream_id]
 
@@ -518,7 +518,7 @@ class WFMAgents(IncrementalStream):
                     bookmark_datetime: datetime = None,
                     is_parent: bool = False) -> Iterator:
         period = self.default_period
-        periods: dict = config.get('periods') or {} 
+        periods: dict = config.get('periods') or {}
         if periods and periods.get(self.tap_stream_id):
             period = periods[self.tap_stream_id]
 
@@ -588,7 +588,7 @@ class WFMAgentsScorecards(IncrementalStream):
                     bookmark_datetime: datetime = None,
                     is_parent: bool = False) -> Iterator:
         period = self.default_period
-        periods: dict = config.get('periods') or {} 
+        periods: dict = config.get('periods') or {}
         if periods and periods.get(self.tap_stream_id):
             period = periods[self.tap_stream_id]
 
@@ -670,7 +670,7 @@ class DataExtractionStream(IncrementalStream):
             poll_timeout = config.get('poll_settings', {}).get('timeout')
 
         job_id = self.create_job(start_date, end_date)
-        
+
         LOGGER.info(f'Created job: {job_id}')
 
         job_details = None
@@ -718,15 +718,15 @@ class DataExtractionStream(IncrementalStream):
         :param transformer: A singer Transformer object
         :return: State data in the form of a dictionary
         """
-        
+
 
         start_date = singer.get_bookmark(state,
                                         self.tap_stream_id,
                                         self.replication_key,
                                         config['start_date'])
         bookmark_datetime = singer.utils.strptime_to_utc(start_date)
-        max_datetime = bookmark_datetime        
-        
+        max_datetime = bookmark_datetime
+
         with metrics.record_counter(self.tap_stream_id) as counter:
             for record in self.get_records(config, bookmark_datetime):
                 # Convert data keys for CSV outputs to the correct field format
@@ -757,7 +757,7 @@ class DataExtractionStream(IncrementalStream):
                     bookmark_datetime: datetime = None,
                     is_parent: bool = False) -> Iterator:
         period = self.default_period
-        periods: dict = config.get('periods') or {} 
+        periods: dict = config.get('periods') or {}
         if periods and periods.get(self.tap_stream_id):
             period = periods[self.tap_stream_id]
 
@@ -794,13 +794,31 @@ class QMWorkflows(DataExtractionStream):
     # Entity information required to create a job
     entity_name = 'qm-workflows'
     entity_version = 3
-    
+
     key_properties = ['lastUpdated', 'startDate', 'workflowId']
     replication_key = 'jobEndDate'
     valid_replication_keys = ['jobEndDate', 'lastUpdated', 'startDate']
     data_key = 'qmWorkflows'
     convert_data_types = True
     default_period = 'days'
+
+
+class QMQuestions(DataExtractionStream):
+    """
+    Retrieve QM Questions via the data extraction api.
+
+    Docs: https://help.nice-incontact.com/content/recording/dataextractionapi.htm#QMQuestionsandAnswersQAEntityandCSVFile
+    """
+    tap_stream_id = 'qm_questions'
+
+    # Entity information required to create a job
+    entity_name = 'qm-questions'
+    entity_version = 1
+
+    key_properties = ['evaluationSubmissionDate', 'workflowinstanceId']
+    replication_key = 'evaluationSubmissionDate'
+    valid_replication_keys = ['evaluationSubmissionDate', 'interactionStartDate']
+    data_key = 'qmQuestions'
 
 
 STREAMS = {
@@ -815,5 +833,6 @@ STREAMS = {
     'wfm_agents': WFMAgents,
     'wfm_agents_schedule_adherence': WFMAgentsScheduleAdherence,
     'wfm_agents_scorecards': WFMAgentsScorecards,
-    'qm_workflows': QMWorkflows
+    'qm_workflows': QMWorkflows,
+    'qm_questions': QMQuestions,
 }
