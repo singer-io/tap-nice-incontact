@@ -11,7 +11,7 @@ setup(
     py_modules=["tap_nice_incontact"],
     install_requires=[
         "backoff==1.8.0",
-        "certifi==2020.12.5",
+        "certifi==2023.7.22",
         "chardet==4.0.0",
         "ciso8601==2.1.3",
         "idna==2.10",
