@@ -3,7 +3,7 @@ from os.path import abspath, dirname, join
 
 setup(
     name="tap-nice-incontact",
-    version="0.3.0",
+    version="0.3.1",
     description="Singer.io tap for extracting data from the NICE InContact Reporting API",
     author="Stitch",
     url="http://singer.io",
@@ -22,7 +22,7 @@ setup(
         "simplejson==3.11.1",
         "singer-python==5.12.1",
         "six==1.15.0",
-        "urllib3==1.26.6",
+        "urllib3==1.26.18",
         "isodate==0.6.0",
     ],
     entry_points="""
